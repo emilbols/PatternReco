@@ -1,4 +1,4 @@
-# Metrology pattern recognition 
+# 2S Module pattern recognition 
 
 A repository where we can gather our tools for pattern recognition in the 2S Module Assembly.
 In images there is a number of pictures of dummy and glass sensors.
