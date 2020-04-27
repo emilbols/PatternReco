@@ -22,6 +22,15 @@ def rho_theta_to_xy(rho,theta):
         y1 = int(y0 + 1000*(a))
         x2 = int(x0 - 1000*(-b))
         y2 = int(y0 - 1000*(a))
+        if y1 > y2:
+                temp_y1 = y1
+                temp_y2 = y2
+                y2 = temp_y1
+                y1 = temp_y2
+                temp_x1 = x1
+                temp_x2 = x2
+                x2 = temp_x1
+                x1 = temp_x2
         return x1,y1,x2,y2
 
 def get_direction(line,unit=True):
@@ -34,13 +43,18 @@ def get_direction(line,unit=True):
                 diry = (line[3]-line[1])
         return dirx,diry
 
+def get_coeff(line):
+        # x = a*y+b
+        a =  float(line[2]-line[0])/float(line[3]-line[1])
+        b = line[0]-a*line[1]
+        return a,b
 
 def select_lines(xy_lines):
         selected_lines = []
         for line in xy_lines:
                 dirx,diry = get_direction(line)
-                dot = dirx * 1.0 + diry * 0.0
-                if(dot < 0.5):
+                dot = np.abs(dirx * 1.0 + diry * 0.0)
+                if(dot < 0.3):
                         selected_lines.append(line)
         return selected_lines
 
@@ -63,48 +77,35 @@ def is_point_on_line(line_1, line_2,threshold=20.0):
                         return point_on_line
         return point_on_line
 
-def is_line_close(line_1, line_2,threshold=200.0):
-        close_line = False
-        steps = 100
-        dirx_1,diry_1 = get_direction(line_1,unit=False)
-        dirx_2,diry_2 = get_direction(line_2,unit=True)
-        step_length = np.sqrt((line_2[2]-line_2[0])**2 + (line_2[3]-line_2[1])**2 )/float(steps)
-        scan_x = line_2[0]
-        scan_y = line_2[1]
-        for n in range(steps):
-                scan_x = scan_x-dirx_2*step_length
-                scan_y = scan_y-diry_2*step_length         
-                dpx1 = scan_x-line_1[0]
-                dpy1 = scan_y-line_1[1]
+def distance_between_lines(line_1,line_2,npoints = 20):
+        scanned_lines = []
+        distances = []
+        a1,b1 = get_coeff(line_1)
+        a2,b2 = get_coeff(line_2)
+        y_step = (1080.0)/float(npoints)
+        scan_y = 0
+        for i in range(npoints):
+                scan_y = scan_y + y_step
+                scan_x1 = a1*scan_y+b1
+                scan_x2 = a2*scan_y+b2
+                distances.append((scan_y,np.abs(scan_x1-scan_x2)))
+                scanned_lines.append((int(scan_x1),int(scan_y),int(scan_x2),int(scan_y)))
+        return scanned_lines,distances
 
-                dpx2 = scan_x-line_1[2]
-                dpy2 = scan_y-line_1[3]
-
-                dpx3 = scan_x - ( (line_1[2]+line_1[0])/2.0 )
-                dpy3 = scan_y - ( (line_1[3]+line_1[1])/2.0 )
-            
-                dist1 = np.sqrt(dpx1 * dpx1 + dpy1 * dpy1);
-                dist2 = np.sqrt(dpx2 * dpx2 + dpy2 * dpy2);
-                dist3 = np.sqrt(dpx3 * dpx3 + dpy3 * dpy3);
-             
-                if (dist1 < threshold):
-                        close_line = True
-                        return close_line
-                if (dist2 < threshold):
-                        close_line = True
-                        return close_line
-                if (dist3 < threshold):
-                        close_line = True
-                        return close_line
-        return close_line
-
+def is_line_close(line_1, line_2,threshold=50.0):
+        _, distances = distance_between_lines(line_1,line_2)
+        its_close = False
+        for point in distances:
+                if (point[1] < threshold):
+                        its_close = True
+        return its_close
         
 def check_parralel(line_1, line_2,threshold = 0.5):
 
         parralel = False
         dirx_1,diry_1 = get_direction(line_1)
         dirx_2,diry_2 = get_direction(line_2)        
-        dot = dirx_1*dirx_2 + diry_1*diry_2
+        dot = np.abs(dirx_1*dirx_2 + diry_1*diry_2)
         if dot > threshold:
                 parralel = True
         return parralel
