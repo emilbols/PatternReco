@@ -7,18 +7,15 @@ import cv2
 import numpy as np
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
 # capture frames from a camera
-cap = cv2.VideoCapture('videos/edge_scan.mp4')
+cap = cv2.VideoCapture('videos/focus.mp4')
 
 
 # loop runs if capturing has been initialized
-measurement = []
-global_y_cord = 0
 test = True
 while(test):
 
     #should be read by the stage
-    global_y_cord = global_y_cord + 5.0
-    
+     
     # reads frames from a camera
     ret, frame = cap.read()
     test = cap.isOpened()
@@ -42,22 +39,9 @@ while(test):
             for rho,theta in l:
                 x1,y1,x2,y2 = rho_theta_to_xy(rho,theta)
                 xy_lines.append((x1,y1,x2,y2))
-    #for l in xy_lines:
-      #  cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(0,0,255),2)
-    selected_lines = select_lines(xy_lines)
-    if selected_lines is not None:
-        averaged_selected_lines = average_over_nearby_lines(selected_lines)
-        for l in averaged_selected_lines:
+    if xy_lines is not None:
+        for l in xy_lines:
             cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(0,0,255),2)
-        if len(averaged_selected_lines) == 2:
-            scanned_lines,distances = distance_between_lines(averaged_selected_lines[0],averaged_selected_lines[1])
-            for l in scanned_lines:
-                cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(255,0,0),2)
-            for point in distances:
-                y_cord = global_y_cord + point[0]
-                dist_x = point[1]
-                measurement.append((y_cord,dist_x))
-   
     cv2.namedWindow('Edges',cv2.WINDOW_NORMAL)    
     cv2.imshow('Edges',line_copy)
     cv2.resizeWindow('Edges', 900,500)

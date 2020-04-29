@@ -110,7 +110,7 @@ def check_parralel(line_1, line_2,threshold = 0.5):
                 parralel = True
         return parralel
                 
-def average_over_nearby_lines(xy_lines):
+def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0):
         averaged_lines = []
         already_averaged = []
         n_lines = len(xy_lines)
@@ -128,9 +128,9 @@ def average_over_nearby_lines(xy_lines):
                 count = 1.0
                 for j in range(i+1,n_lines):
                         line_2 = xy_lines[j]
-                        mostly_parralel = check_parralel(line_1,line_2)
+                        mostly_parralel = check_parralel(line_1,line_2,threshold = dot_threshold)
                         if mostly_parralel:
-                                point_on_line = is_line_close(line_1, line_2)
+                                point_on_line = is_line_close(line_1, line_2, threshold = dist_threshold)
                                 if point_on_line:
                                         sum_x1 = sum_x1+line_2[0]
                                         sum_y1 = sum_y1+line_2[1]
