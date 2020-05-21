@@ -32,16 +32,11 @@ while(test):
     cv2.namedWindow('Original',cv2.WINDOW_NORMAL)
     cv2.imshow('Original',frame) 
     cv2.resizeWindow('Original', 900,500)
+
     # Display edges in a frame
-    xy_lines = []
     if lines is not None:
         for l in lines:
-            for rho,theta in l:
-                x1,y1,x2,y2 = rho_theta_to_xy(rho,theta)
-                xy_lines.append((x1,y1,x2,y2))
-    if xy_lines is not None:
-        for l in xy_lines:
-            cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(0,0,255),2)
+            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2)
     cv2.namedWindow('Edges',cv2.WINDOW_NORMAL)    
     cv2.imshow('Edges',line_copy)
     cv2.resizeWindow('Edges', 900,500)

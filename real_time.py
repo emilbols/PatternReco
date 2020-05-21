@@ -36,23 +36,20 @@ while(test):
     cv2.imshow('Original',frame) 
     cv2.resizeWindow('Original', 900,500)
     # Display edges in a frame
-    xy_lines = []
-    if lines is not None:
-        for l in lines:
-            for rho,theta in l:
-                x1,y1,x2,y2 = rho_theta_to_xy(rho,theta)
-                xy_lines.append((x1,y1,x2,y2))
-    #for l in xy_lines:
-      #  cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(0,0,255),2)
-    selected_lines = select_lines(xy_lines)
+
+    #for l in lines:
+      #  cv2.line(line_copy,(l.x1,l.x2),(l.x2,l.y2),(0,0,255),2)
+
+    selected_lines = select_lines(lines)
+
     if selected_lines is not None:
         averaged_selected_lines = average_over_nearby_lines(selected_lines)
         for l in averaged_selected_lines:
-            cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(0,0,255),2)
+            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2)
         if len(averaged_selected_lines) == 2:
             scanned_lines,distances = distance_between_lines(averaged_selected_lines[0],averaged_selected_lines[1])
             for l in scanned_lines:
-                cv2.line(line_copy,(l[0],l[1]),(l[2],l[3]),(255,0,0),2)
+		cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2)
             for point in distances:
                 y_cord = global_y_cord + point[0]
                 dist_x = point[1]
