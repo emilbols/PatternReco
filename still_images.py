@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from edge_finder import edge_find, rho_theta_to_xy
+from edge_finder import edge_find
 
 dir_name = 'images/dummy_sensor_2_contours/'
 input_dir = 'images/dummy_sensor_2/'
@@ -22,7 +22,5 @@ for filename in os.listdir(input_dir):
         cv2.imwrite(output_name+'_edges_extract.jpg',contour_img)
         if lines is not None:
             for l in lines:
-                for rho,theta in l:
-                    x1,y1,x2,y2 = rho_theta_to_xy(rho,theta)
-                    cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+                cv2.line(img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2)
         cv2.imwrite(output_name+'_hough.jpg',img)

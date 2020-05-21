@@ -10,72 +10,124 @@ class point:
         # Points for Left Right Top and Bottom
 corner = point()
 
-def midpoint(ptA, ptB):
-        return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
+class line:
+	def __init__ (self, *args):
+		if len(args) == 2 :
+			self.rho = args[0]
+			self.theta = args[1]
 
-def rho_theta_to_xy(rho,theta):
-        a = np.cos(theta)
-        b = np.sin(theta)
-        x0 = a*rho
-        y0 = b*rho
-        x1 = int(x0 + 1000*(-b))
-        y1 = int(y0 + 1000*(a))
-        x2 = int(x0 - 1000*(-b))
-        y2 = int(y0 - 1000*(a))
-        if y1 > y2:
-                temp_y1 = y1
-                temp_y2 = y2
-                y2 = temp_y1
-                y1 = temp_y2
-                temp_x1 = x1
-                temp_x2 = x2
-                x2 = temp_x1
-                x1 = temp_x2
-        return x1,y1,x2,y2
+			__x1,__y1,__x2,__y2 = rho_theta_to_xy(self.rho, self.theta)
+			self.x1 = __x1
+			self.y1 = __y1
+			self.x2 = __x2
+			self.y2 = __y2
 
-def get_direction(line,unit=True):
-        length = np.sqrt((line[2]-line[0])**2 + (line[3]-line[1])**2 )
-        if unit:
-                dirx = (line[2]-line[0]) / length 
-                diry = (line[3]-line[1]) / length
-        else:
-                dirx = (line[2]-line[0]) 
-                diry = (line[3]-line[1])
-        return dirx,diry
+		elif len(args) == 4 :
+			self.x1 = args[0]
+                        self.y1 = args[1]
+                        self.x2 = args[2]
+                        self.y2 = args[3]
+
+			__rho, __theta = xy_to_rho_theta(self.x1, self.y1, self.x2, self.x2)
+			self.rho = __rho
+			self.theta = __theta
+
+		else:
+			print "\nIncorrect line constructor\n"
+			os._exit(0)
+
+	def polar_coords (self):
+		return self.rho, self.theta
+
+	def line_endpoints (self):
+		return self.x1, self.y1, self.x2, self.y2
+
+	def midpoint (self):
+		return ( (self.x1 + self.x2) * 0.5, (self.y1 + self.y2) * 0.5)
+
+	def direction (self, unit=True):
+		length = np.sqrt((self.x2 - self.x1)**2 + (self.y2 - self.y1)**2 )
+		if unit:
+			dirx = (self.x2 - self.x1) / length
+			diry = (self.y2 - self.y1) / length
+		else:
+			dirx = (self.x2 - self.x1)
+			diry = (self.y2 - self.y1)
+		return dirx,diry
 
 def get_coeff(line):
         # x = a*y+b
-        a =  float(line[2]-line[0])/float(line[3]-line[1])
-        b = line[0]-a*line[1]
+        a =  float(line.x2-line.x1)/float(line.y2-line.y1)
+        b = line.x1-a*line.y1
         return a,b
-
-def select_lines(xy_lines):
-        selected_lines = []
-        for line in xy_lines:
-                dirx,diry = get_direction(line)
-                dot = np.abs(dirx * 1.0 + diry * 0.0)
-                if(dot < 0.3):
-                        selected_lines.append(line)
-        return selected_lines
 
 def is_point_on_line(line_1, line_2,threshold=20.0):
         point_on_line = False
         steps = 100
-        dirx_1,diry_1 = get_direction(line_1,unit=False)
-        dirx_2,diry_2 = get_direction(line_2,unit=True)
-        step_length = np.sqrt((line_2[2]-line_2[0])**2 + (line_2[3]-line_2[1])**2 )/float(steps)
-        scan_x = line_2[0]
-        scan_y = line_2[1]
+        dirx_1,diry_1 = line1.direction(unit=False)
+        dirx_2,diry_2 = line2.direction(unit=True)
+        step_length = np.sqrt((line_2.x2-line_2.x1)**2 + (line_2.y2-line_2.y1)**2 )/float(steps)
+        scan_x = line_2.x1
+       	scan_y = line_2.y1
         for n in range(steps):
                 scan_x = scan_x-dirx_2*step_length
                 scan_y = scan_y-diry_2*step_length         
-                dpx = scan_x-line_1[0]
-                dpy = scan_y-line_1[1]
+                dpx = scan_x-line_1.x1
+                dpy = scan_y-line_1.y1
                 cross = dpx * diry_1 - dpy * dirx_1;
                 if (abs(cross) < threshold):
                         point_on_line = True
                         return point_on_line
         return point_on_line
+
+
+def rphi_to_xy(r,phi):
+	x = r * np.cos(phi)
+	y = r * np.sin(phi)
+	return x,y
+
+def xy_to_rphi(x,y):
+	r = np.sqrt( x**2 + y**2 )
+	phi = np.arctan2 (y/x)
+	if phi < 0 : phi += 2*math.pi
+	return r,phi
+
+def rho_theta_to_xy(rho,theta):
+        a = np.cos(theta)
+        b = np.sin(theta)
+	x0 = a*rho
+        y0 = b*rho
+	x1 = int(x0 + 1000*(-b))
+	y1 = int(y0 + 1000*(a))
+	x2 = int(x0 - 1000*(-b))
+        y2 = int(y0 - 1000*(a))
+	if y1 > y2:
+        	temp_y1 = y1
+        	temp_y2 = y2
+	        y2 = temp_y1
+        	y1 = temp_y2
+                temp_x1 = x1
+	        temp_x2 = x2
+        	x2 = temp_x1
+                x1 = temp_x2
+	return x1,y1,x2,y2
+
+def xy_to_rho_theta(x1,y1,x2,y2):
+	x0 = (x1+x2)/2
+	y0 = (y1+y2)/2
+	theta = np.arctan2( (y1+y2) , (x1+x2) )
+	if theta < 0 : theta += 2*math.pi
+	rho =  x0 * np.cos(theta) + y0 * np.sin(theta)
+	return rho, theta
+
+def select_lines(lines):
+        selected_lines = []
+        for l in lines:
+                dirx,diry = l.direction()
+                dot = np.abs(dirx * 1.0 + diry * 0.0)
+                if(dot < 0.3):
+                        selected_lines.append(l)
+        return selected_lines
 
 def distance_between_lines(line_1,line_2,npoints = 20):
         scanned_lines = []
@@ -88,8 +140,8 @@ def distance_between_lines(line_1,line_2,npoints = 20):
                 scan_y = scan_y + y_step
                 scan_x1 = a1*scan_y+b1
                 scan_x2 = a2*scan_y+b2
-                distances.append((scan_y,np.abs(scan_x1-scan_x2)))
-                scanned_lines.append((int(scan_x1),int(scan_y),int(scan_x2),int(scan_y)))
+                distances.append( (scan_y, np.abs(scan_x1-scan_x2)) )
+                scanned_lines.append( line(int(scan_x1),int(scan_y),int(scan_x2),int(scan_y)) )
         return scanned_lines,distances
 
 def is_line_close(line_1, line_2,threshold=50.0):
@@ -103,13 +155,23 @@ def is_line_close(line_1, line_2,threshold=50.0):
 def check_parralel(line_1, line_2,threshold = 0.5):
 
         parralel = False
-        dirx_1,diry_1 = get_direction(line_1)
-        dirx_2,diry_2 = get_direction(line_2)        
+        dirx_1,diry_1 = line_1.direction()
+        dirx_2,diry_2 = line_2.direction()     
         dot = np.abs(dirx_1*dirx_2 + diry_1*diry_2)
         if dot > threshold:
                 parralel = True
         return parralel
-                
+
+def check_perpendicular(line_1, line_2, threshold = 0.5):
+
+	perpendicular = False
+	dirx_1,diry_1 = line_1.direction
+        dirx_2,diry_2 = line_2.direction
+        dot = np.abs(dirx_1*dirx_2 + diry_1*diry_2)
+        if dot < threshold:
+		perpendicular = True
+	return parralel
+
 def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0):
         averaged_lines = []
         already_averaged = []
@@ -121,10 +183,10 @@ def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0
                         continue
                 line_1 = xy_lines[i]
                 line_averaged = [i]
-                sum_x1 = line_1[0]
-                sum_y1 = line_1[1]
-                sum_x2 = line_1[2]
-                sum_y2 = line_1[3]
+                sum_x1 = line_1.x1
+                sum_y1 = line_1.y1
+                sum_x2 = line_1.x2
+                sum_y2 = line_1.y2
                 count = 1.0
                 for j in range(i+1,n_lines):
                         line_2 = xy_lines[j]
@@ -132,14 +194,14 @@ def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0
                         if mostly_parralel:
                                 point_on_line = is_line_close(line_1, line_2, threshold = dist_threshold)
                                 if point_on_line:
-                                        sum_x1 = sum_x1+line_2[0]
-                                        sum_y1 = sum_y1+line_2[1]
-                                        sum_x2 = sum_x2+line_2[2]
-                                        sum_y2 = sum_y2+line_2[3]
+                                        sum_x1 = sum_x1+line_2.x1
+                                        sum_y1 = sum_y1+line_2.y1
+                                        sum_x2 = sum_x2+line_2.x2
+                                        sum_y2 = sum_y2+line_2.y2
                                         count = count+1
                                         line_averaged.append(j)
                                         already_averaged[j] = True
-                averaged_lines.append((int(sum_x1/count),int(sum_y1/count),int(sum_x2/count),int(sum_y2/count)))
+                averaged_lines.append( line(int(sum_x1/count),int(sum_y1/count),int(sum_x2/count),int(sum_y2/count)) )
         return averaged_lines
 
 
@@ -170,6 +232,10 @@ def edge_find(img):
         cnts = [best_contour]
 
         # another method, hough lines, might be better
-        lines = cv2.HoughLines(edges,1,np.pi/180,200)
-
+	houghLines = cv2.HoughLines(edges,1,np.pi/180,200)
+        lines = []
+	if houghLines is not None:
+		for i in range(0, len(houghLines)) :
+			tempLine = line(houghLines[i][0][0], houghLines[i][0][1])
+			lines.append(tempLine)
         return edges, cnts, lines
