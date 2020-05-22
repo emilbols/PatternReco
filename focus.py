@@ -36,7 +36,7 @@ while(test):
     # Display edges in a frame
     if lines is not None:
         for l in lines:
-            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2)
+            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
     cv2.namedWindow('Edges',cv2.WINDOW_NORMAL)    
     cv2.imshow('Edges',line_copy)
     cv2.resizeWindow('Edges', 900,500)
