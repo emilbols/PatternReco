@@ -129,6 +129,15 @@ def select_lines(lines):
                         selected_lines.append(l)
         return selected_lines
 
+def distance_between_points(x1,y1,x2,y2) :
+	distance = np.sqrt( (y2-y1)**2 + (x2-x1)**2 )
+	return distance ## absolute distance
+
+def distance_between_line_point(x0,y0,line) :
+	## shortest distance of a point to a line segment (s)
+
+	return dist #(dist x,dist y)
+
 def distance_between_lines(line_1,line_2,npoints = 20):
         scanned_lines = []
         distances = []
@@ -152,25 +161,25 @@ def is_line_close(line_1, line_2,threshold=50.0):
                         its_close = True
         return its_close
         
-def check_parralel(line_1, line_2,threshold = 0.5):
+def check_parallel(line_1, line_2,threshold = 0.5):
 
-        parralel = False
+        parallel = False
         dirx_1,diry_1 = line_1.direction()
         dirx_2,diry_2 = line_2.direction()     
         dot = np.abs(dirx_1*dirx_2 + diry_1*diry_2)
         if dot > threshold:
-                parralel = True
-        return parralel
+                parallel = True
+        return parallel
 
 def check_perpendicular(line_1, line_2, threshold = 0.5):
 
 	perpendicular = False
-	dirx_1,diry_1 = line_1.direction
-        dirx_2,diry_2 = line_2.direction
+	dirx_1,diry_1 = line_1.direction()
+        dirx_2,diry_2 = line_2.direction()
         dot = np.abs(dirx_1*dirx_2 + diry_1*diry_2)
         if dot < threshold:
 		perpendicular = True
-	return parralel
+	return perpendicular
 
 def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0):
         averaged_lines = []
@@ -190,8 +199,8 @@ def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0
                 count = 1.0
                 for j in range(i+1,n_lines):
                         line_2 = xy_lines[j]
-                        mostly_parralel = check_parralel(line_1,line_2,threshold = dot_threshold)
-                        if mostly_parralel:
+                        mostly_parallel = check_parallel(line_1,line_2,threshold = dot_threshold)
+                        if mostly_parallel:
                                 point_on_line = is_line_close(line_1, line_2, threshold = dist_threshold)
                                 if point_on_line:
                                         sum_x1 = sum_x1+line_2.x1
@@ -204,16 +213,59 @@ def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0
                 averaged_lines.append( line(int(sum_x1/count),int(sum_y1/count),int(sum_x2/count),int(sum_y2/count)) )
         return averaged_lines
 
+def xy_intersection(line1, line2):
+    rho1, theta1 = line1.polar_coords()
+    rho2, theta2 = line2.polar_coords()
+    A = np.array([
+        [np.cos(theta1), np.sin(theta1)],
+        [np.cos(theta2), np.sin(theta2)]
+    ])
+    b = np.array([[rho1], [rho2]])
+
+    x0, y0 = np.linalg.solve(A, b)
+    x0, y0 = int(np.round(x0)), int(np.round(y0))
+    return x0, y0
+
+def find_intersections(lines, threshold = 0.1):
+        xy = []
+        if lines is not None:
+            for i in range(0, len(lines)):
+                for j in range(i+1, len(lines)):
+                    rho1, theta1 = lines[i].polar_coords()
+                    rho2, theta2 = lines[j].polar_coords()
+                    if ( check_perpendicular(lines[i], lines[j], threshold) is True ) :
+                        _xy = xy_intersection(lines[i], lines[j])
+                        xy.append( _xy )
+        return xy
+
+def rphi_intersection(line1, line2):
+    rho1, theta1 = line1.polar_coords()
+    rho2, theta2 = line2.polar_coords()
+    A = np.array([
+        [np.cos(theta1), np.sin(theta1)],
+        [np.cos(theta2), np.sin(theta2)]
+    ])
+    b = np.array([[rho1], [rho2]])
+
+    x0, y0 = np.linalg.solve(A, b)
+    x0, y0 = int(np.round(x0)), int(np.round(y0))
+    r,phi = xy_to_rphi(x0,y0)
+    return [[r,phi]]
 
 def edge_find(img):
 
         #runs the edge finding algorithm. The min and max value of Canny are very important to tune!
-        edges = cv2.Canny(img,30,100)
-        #we have to find good values for iterations for these two functions. They smooth the edges found so we can draw contours better.
-        edges = cv2.dilate(edges, None, iterations=1)
-        edges = cv2.erode(edges, None, iterations=1)
+
+        # preprocessing parameters
+        cannyThreshold1 = 30
+        cannyThreshold2 = 100
+        cannyAperture = 3
+        dilateIt = 1
+        erodeIt = 1
         kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-        edges = cv2.filter2D(edges, -1, kernel)
+
+        # preprocess image with canny edge detection and edge smoothing
+        edges = preprocess_image(img, cannyThreshold1, cannyThreshold2, cannyAperture, dilateIt, erodeIt, kernel)
 
         contour_img = img.copy()
         # finds contours you can from the edge image. Right now it is not working great. You can get the coordinates of these contours here.
@@ -232,10 +284,131 @@ def edge_find(img):
         cnts = [best_contour]
 
         # another method, hough lines, might be better
-	houghLines = cv2.HoughLines(edges,1,np.pi/180,200)
-        lines = []
-	if houghLines is not None:
-		for i in range(0, len(houghLines)) :
-			tempLine = line(houghLines[i][0][0], houghLines[i][0][1])
-			lines.append(tempLine)
+	lines = cv2HoughLines(edges, 200)
+
         return edges, cnts, lines
+
+def corner_find (img, debug = False):
+
+	debugPics = []
+	if debug is True : debugPics.append(img)
+
+	## Ensure input image is greyscale
+	grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	if debug is True : debugPics.append(grey_img)
+
+	## Blur the greyscale image
+        blur_greyscale = cv2.GaussianBlur(grey_img, (5,5), 0)
+        if debug is True : debugPics.append(blur_greyscale)
+
+        # preprocessing parameters
+	cannyThreshold1 = 50
+	cannyThreshold2 = 150
+	cannyAperture = 3
+	dilateIt = 1
+	erodeIt = 1
+	kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+
+        ## Apply canny edge detection algo to input blurred image and smooth edges
+	edges = preprocess_image(blur_greyscale, cannyThreshold1, cannyThreshold2, cannyAperture, dilateIt, erodeIt, kernel)
+
+	if debug is True : debugPics.append(edges)
+
+	## post-flooodfill and masking canny parameters
+	postMaskCannyThreshold1 = 15
+	postMaskCannyThreshold2 = 50
+	postMaskCannyAperture = 3
+	## floodfill and mask preprocessed image and edge detector said image
+	masked_edges = floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1, postMaskCannyThreshold2, postMaskCannyAperture)
+
+        ## Find Hough Lines on the edges after masking
+	min_line_length = 0  # Original test value of 50
+	max_line_gap = 0     # Original value of 20
+	threshold = 100      # Original value of 100
+	probabilisticHT = False
+
+        lines = cv2HoughLines(masked_edges, threshold, min_line_length, max_line_gap, probabilisticHT)
+
+        ## Draw lines on original image for debug plot
+	if debug is True:
+	        org_img_lines = img.copy()
+	        if lines is not None and debug:
+        	    for i in range(0, len(lines)):
+                	rho = lines[i].rho
+	                theta = lines[i].theta
+        	        a = math.cos(theta)
+                	b = math.sin(theta)
+	                x0 = a * rho
+        	        y0 = b * rho
+                	pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+	                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+        	        cv2.line(org_img_lines, pt1, pt2, (123,234,123), 2, cv2.LINE_AA)
+		debugPics.append(org_img_lines)
+
+
+        ## Find intersection of every line found and if debug over original image
+        ## loop over all line pairs to consider if they intersect (if they are not parallel)
+
+	org_img_circles = None
+        if debug is True : org_img_circles = img.copy() #copy of input image for debug
+
+	threshold = 0.1
+	xy = find_intersections(lines, threshold)
+
+        if debug is True and xy is not None: 
+		for i in range (0, len(xy)) :
+			xyTuple = tuple(xy[i])
+			org_img_circles = cv2.circle(org_img_circles, xyTuple, 25, 255, 5)
+		debugPics.append(org_img_circles)
+
+	return xy, lines, debugPics
+
+def preprocess_image( input, cannyThreshold1 = 50, cannyThreshold2 = 150, cannyAperture = 3, dilateIt = 1, erodeIt = 1, filterKernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]]) ) :
+
+        ## Apply canny edge detection algo to input blurred image
+	edges = cv2.Canny(input, cannyThreshold1, cannyThreshold2, cannyAperture)
+        ## Smooth edges so that we can find/draw the lines/contours/intersection better
+        edges = cv2.dilate(edges, None, dilateIt)
+        edges = cv2.erode(edges, None, erodeIt)
+        edges = cv2.filter2D(edges, -1, filterKernel)
+
+	return edges
+
+
+def floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1 = 15, postMaskCannyThreshold2 = 50, postMaskCannyAperture = 3) :
+
+        ## Now edges have been found, floodfill the image to segment the object from the background
+        h, w = edges.shape[:2]
+        mask = np.zeros((h+2, w+2), np.uint8)
+        cv2.floodFill(edges, mask, (0,0), 123);
+        floodfill = edges.copy()
+        if debugPics is not None : debugPics.append(floodfill)
+
+        ## Apply masking and show masked image
+        bg = np.zeros_like(floodfill)
+        bg[floodfill == 123] = 255
+        if debugPics is not None : debugPics.append(bg)
+
+        ## Now find the edges after masking using Canny and print them to plot
+        bg = cv2.blur(bg, (1,1))
+        masked_edges = cv2.Canny(bg, postMaskCannyThreshold1, postMaskCannyThreshold2, postMaskCannyAperture)
+        if debugPics is not None : debugPics.append(masked_edges)
+
+	return masked_edges
+
+def cv2HoughLines (edges, threshold, min_line_length = 0, max_line_gap = 0, Probabilistic = False) :
+	lines = []
+	if Probabilistic is False :
+		houghLines = cv2.HoughLines(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap) ### default hough lines
+		if houghLines is not None:
+			for i in range(0, len(houghLines)) :
+				tempLine = line(houghLines[i][0][0], houghLines[i][0][1])
+				lines.append(tempLine)
+	else :
+		houghLinesP = cv2.HoughLinesP(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap)
+		if houghLinesP is not None:
+			for i in range(0, len(houghLinesP)) :    
+                                tempLine = line(houghLinesP[i][0][0], houghLinesP[i][0][1], houghLinesP[i][0][2],houghLinesP[i][0][3])
+				lines.append(tempLine)
+
+	return lines

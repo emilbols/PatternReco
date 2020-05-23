@@ -38,18 +38,18 @@ while(test):
     # Display edges in a frame
 
     #for l in lines:
-      #  cv2.line(line_copy,(l.x1,l.x2),(l.x2,l.y2),(0,0,255),2)
+      #  cv2.line(line_copy,(l.x1,l.x2),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
 
     selected_lines = select_lines(lines)
 
     if selected_lines is not None:
         averaged_selected_lines = average_over_nearby_lines(selected_lines)
         for l in averaged_selected_lines:
-            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2)
+            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
         if len(averaged_selected_lines) == 2:
             scanned_lines,distances = distance_between_lines(averaged_selected_lines[0],averaged_selected_lines[1])
             for l in scanned_lines:
-		cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2)
+		cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2,cv2.LINE_AA)
             for point in distances:
                 y_cord = global_y_cord + point[0]
                 dist_x = point[1]
