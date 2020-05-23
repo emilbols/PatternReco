@@ -62,21 +62,20 @@ for filename in os.listdir(input_dir):
 
 
 	## Debug Plots
-	if debug is True :
+	if debug is True and debugPics is not None :
 		#Fill plots
-		if debugPics is not None:
-			plot[0,0].imshow(debugPics[0])
-			plot[0,1].imshow(debugPics[1])
-			plot[0,2].imshow(debugPics[2])
-			plot[1,0].imshow(debugPics[3])
-			plot[1,1].imshow(debugPics[4])
-			plot[1,2].imshow(debugPics[5])
-			plot[2,0].imshow(debugPics[6])
-			plot[2,1].imshow(debugPics[7])
-			plot[2,2].imshow(debugPics[8])
+		plot[0,0].imshow(debugPics[0])
+		plot[0,1].imshow(debugPics[1])
+		plot[0,2].imshow(debugPics[2])
+		plot[1,0].imshow(debugPics[3])
+		plot[1,1].imshow(debugPics[4])
+		plot[1,2].imshow(debugPics[5])
+		plot[2,0].imshow(debugPics[6])
+		plot[2,1].imshow(debugPics[7])
+		plot[2,2].imshow(debugPics[8])
         	# Add titles
 	        fig.canvas.set_window_title(output_name)
-        	fig.suptitle(output_name)
+       		fig.suptitle(output_name)
 	        plot[0,0].set_title('Source Image')
         	plot[0,1].set_title('Source Greyscale')
 	        plot[0,2].set_title('Blur')
@@ -97,8 +96,8 @@ for filename in os.listdir(input_dir):
 	        plot[2,1].axis('off')
         	plot[2,2].axis('off')
 	        ## Show/Save plot with debug-pictures
-		# plt.savefig(output_name+"_fig.png", format="png")
-		plt.show()
+		plt.savefig(output_name+"_fig.png", format="png")
+		#plt.show()
 
 ## Fin
 
