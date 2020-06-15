@@ -97,10 +97,10 @@ def rho_theta_to_xy(rho,theta):
         b = np.sin(theta)
 	x0 = a*rho
         y0 = b*rho
-	x1 = int(x0 + 1000*(-b))
-	y1 = int(y0 + 1000*(a))
-	x2 = int(x0 - 1000*(-b))
-        y2 = int(y0 - 1000*(a))
+	x1 = int(x0 + 2448*(-b))
+	y1 = int(y0 + 2048*(a))
+	x2 = int(x0 - 2448*(-b))
+        y2 = int(y0 - 2048*(a))
 	if y1 > y2:
         	temp_y1 = y1
         	temp_y2 = y2
@@ -256,6 +256,7 @@ def edge_find(img):
 
         #runs the edge finding algorithm. The min and max value of Canny are very important to tune!
 
+
         # preprocessing parameters
         cannyThreshold1 = 30
         cannyThreshold2 = 100
@@ -271,7 +272,7 @@ def edge_find(img):
         # finds contours you can from the edge image. Right now it is not working great. You can get the coordinates of these contours here.
         cnts = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL,
 	                        cv2.CHAIN_APPROX_SIMPLE)
-        #
+        
         cnts = cnts[0]
         chosen_cnts = []
         best_contour = 0
