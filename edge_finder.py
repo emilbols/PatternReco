@@ -97,10 +97,10 @@ def rho_theta_to_xy(rho,theta):
         b = np.sin(theta)
 	x0 = a*rho
         y0 = b*rho
-	x1 = int(x0 + 1000*(-b))
-	y1 = int(y0 + 1000*(a))
-	x2 = int(x0 - 1000*(-b))
-        y2 = int(y0 - 1000*(a))
+	x1 = int(x0 + 2448*(-b))
+	y1 = int(y0 + 2048*(a))
+	x2 = int(x0 - 2448*(-b))
+        y2 = int(y0 - 2048*(a))
 	if y1 > y2:
         	temp_y1 = y1
         	temp_y2 = y2
@@ -234,7 +234,7 @@ def rphi_intersection(line1, line2):
 def edge_find(img):
 
         #runs the edge finding algorithm. The min and max value of Canny are very important to tune!
-        edges = cv2.Canny(img,30,100)
+        edges = cv2.Canny(img,20,120)
         #we have to find good values for iterations for these two functions. They smooth the edges found so we can draw contours better.
         edges = cv2.dilate(edges, None, iterations=1)
         edges = cv2.erode(edges, None, iterations=1)

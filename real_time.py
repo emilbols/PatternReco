@@ -5,10 +5,12 @@ import cv2
 
 # np is an alias pointing to numpy library
 import numpy as np
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
+from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
 # capture frames from a camera
 cap = cv2.VideoCapture('videos/edge_scan.mp4')
-
+#cap = cv2.VideoCapture(1)
+#cap.set(cv2.CAP_PROP_FRAME_WIDTH,2500);
+#cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2500);
 
 # loop runs if capturing has been initialized
 measurement = []
@@ -31,10 +33,11 @@ while(test):
     line_copy = frame.copy()
     # finds edges,countours, and hough lines in the input image image
     edges,cnts,lines = edge_find(frame)
+    corners, _ , z =corner_find(frame)
     
     cv2.namedWindow('Original',cv2.WINDOW_NORMAL)
     cv2.imshow('Original',frame) 
-    cv2.resizeWindow('Original', 900,500)
+    cv2.resizeWindow('Original', 1024,800)
     # Display edges in a frame
 
     #for l in lines:
@@ -54,10 +57,13 @@ while(test):
                 y_cord = global_y_cord + point[0]
                 dist_x = point[1]
                 measurement.append((y_cord,dist_x))
-   
+
+    if corners is not None:
+        for corner in corners:
+            line_copy = cv2.circle(line_copy, tuple(corner), 25, (0,0,255), 5)    
     cv2.namedWindow('Edges',cv2.WINDOW_NORMAL)    
     cv2.imshow('Edges',line_copy)
-    cv2.resizeWindow('Edges', 900,500)
+    cv2.resizeWindow('Edges', 1024,800)
     key = cv2.waitKey(1) 
     if key == ('c'):
         break
