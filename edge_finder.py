@@ -11,49 +11,46 @@ class point:
 corner = point()
 
 class line:
-	def __init__ (self, *args):
-		if len(args) == 2 :
-			self.rho = args[0]
-			self.theta = args[1]
+        def __init__ (self, *args):
+                if len(args) == 2 :
+                        self.rho = args[0]
+                        self.theta = args[1]
+                        __x1,__y1,__x2,__y2 = rho_theta_to_xy(self.rho, self.theta)
+                        self.x1 = __x1
+                        self.y1 = __y1
+                        self.x2 = __x2
+                        self.y2 = __y2
 
-			__x1,__y1,__x2,__y2 = rho_theta_to_xy(self.rho, self.theta)
-			self.x1 = __x1
-			self.y1 = __y1
-			self.x2 = __x2
-			self.y2 = __y2
-
-		elif len(args) == 4 :
-			self.x1 = args[0]
+                elif len(args) == 4 :
+                        self.x1 = args[0]
                         self.y1 = args[1]
                         self.x2 = args[2]
                         self.y2 = args[3]
+                        __rho, __theta = xy_to_rho_theta(self.x1, self.y1, self.x2, self.x2)
+                        self.rho = __rho
+                        self.theta = __theta
+                else:
+                        print ("\nIncorrect line constructor\n")
+                        os._exit(0)
 
-			__rho, __theta = xy_to_rho_theta(self.x1, self.y1, self.x2, self.x2)
-			self.rho = __rho
-			self.theta = __theta
+        def polar_coords (self):
+                return self.rho, self.theta
 
-		else:
-			print "\nIncorrect line constructor\n"
-			os._exit(0)
+        def line_endpoints (self):
+                return self.x1, self.y1, self.x2, self.y2
 
-	def polar_coords (self):
-		return self.rho, self.theta
+        def midpoint (self):
+                return ( (self.x1 + self.x2) * 0.5, (self.y1 + self.y2) * 0.5)
 
-	def line_endpoints (self):
-		return self.x1, self.y1, self.x2, self.y2
-
-	def midpoint (self):
-		return ( (self.x1 + self.x2) * 0.5, (self.y1 + self.y2) * 0.5)
-
-	def direction (self, unit=True):
-		length = np.sqrt((self.x2 - self.x1)**2 + (self.y2 - self.y1)**2 )
-		if unit:
-			dirx = (self.x2 - self.x1) / length
-			diry = (self.y2 - self.y1) / length
-		else:
-			dirx = (self.x2 - self.x1)
-			diry = (self.y2 - self.y1)
-		return dirx,diry
+        def direction (self, unit=True):
+                length = np.sqrt((self.x2 - self.x1)**2 + (self.y2 - self.y1)**2 )
+                if unit:
+                        dirx = (self.x2 - self.x1) / length
+                        diry = (self.y2 - self.y1) / length
+                else:
+                        dirx = (self.x2 - self.x1)
+                        diry = (self.y2 - self.y1)
+                return dirx,diry
 
 def get_coeff(line):
         # x = a*y+b
@@ -68,7 +65,7 @@ def is_point_on_line(line_1, line_2,threshold=20.0):
         dirx_2,diry_2 = line2.direction(unit=True)
         step_length = np.sqrt((line_2.x2-line_2.x1)**2 + (line_2.y2-line_2.y1)**2 )/float(steps)
         scan_x = line_2.x1
-       	scan_y = line_2.y1
+        scan_y = line_2.y1
         for n in range(steps):
                 scan_x = scan_x-dirx_2*step_length
                 scan_y = scan_y-diry_2*step_length         
@@ -82,43 +79,43 @@ def is_point_on_line(line_1, line_2,threshold=20.0):
 
 
 def rphi_to_xy(r,phi):
-	x = r * np.cos(phi)
-	y = r * np.sin(phi)
-	return x,y
+        x = r * np.cos(phi)
+        y = r * np.sin(phi)
+        return x,y
 
 def xy_to_rphi(x,y):
-	r = np.sqrt( x**2 + y**2 )
-	phi = np.arctan2 (y/x)
-	if phi < 0 : phi += 2*math.pi
-	return r,phi
+        r = np.sqrt( x**2 + y**2 )
+        phi = np.arctan2 (y/x)
+        if phi < 0 : phi += 2*math.pi
+        return r,phi
 
 def rho_theta_to_xy(rho,theta):
         a = np.cos(theta)
         b = np.sin(theta)
-	x0 = a*rho
+        x0 = a*rho
         y0 = b*rho
-	x1 = int(x0 + 2448*(-b))
-	y1 = int(y0 + 2048*(a))
-	x2 = int(x0 - 2448*(-b))
+        x1 = int(x0 + 2448*(-b))
+        y1 = int(y0 + 2048*(a))
+        x2 = int(x0 - 2448*(-b))
         y2 = int(y0 - 2048*(a))
-	if y1 > y2:
-        	temp_y1 = y1
-        	temp_y2 = y2
-	        y2 = temp_y1
-        	y1 = temp_y2
+        if y1 > y2:
+                temp_y1 = y1
+                temp_y2 = y2
+                y2 = temp_y1
+                y1 = temp_y2
                 temp_x1 = x1
-	        temp_x2 = x2
-        	x2 = temp_x1
+                temp_x2 = x2
+                x2 = temp_x1
                 x1 = temp_x2
-	return x1,y1,x2,y2
+        return x1,y1,x2,y2
 
 def xy_to_rho_theta(x1,y1,x2,y2):
-	x0 = (x1+x2)/2
-	y0 = (y1+y2)/2
-	theta = np.arctan2( (y1+y2) , (x1+x2) )
-	if theta < 0 : theta += 2*math.pi
-	rho =  x0 * np.cos(theta) + y0 * np.sin(theta)
-	return rho, theta
+        x0 = (x1+x2)/2
+        y0 = (y1+y2)/2
+        theta = np.arctan2( (y1+y2) , (x1+x2) )
+        if theta < 0 : theta += 2*math.pi
+        rho =  x0 * np.cos(theta) + y0 * np.sin(theta)
+        return rho, theta
 
 def select_lines(lines):
         selected_lines = []
@@ -130,13 +127,12 @@ def select_lines(lines):
         return selected_lines
 
 def distance_between_points(x1,y1,x2,y2) :
-	distance = np.sqrt( (y2-y1)**2 + (x2-x1)**2 )
-	return distance ## absolute distance
+        distance = np.sqrt( (y2-y1)**2 + (x2-x1)**2 )
+        return distance ## absolute distance
 
 def distance_between_line_point(x0,y0,line) :
-	## shortest distance of a point to a line segment (s)
-
-	return dist #(dist x,dist y)
+        ## shortest distance of a point to a line segment (s)
+        return dist #(dist x,dist y)
 
 def distance_between_lines(line_1,line_2,npoints = 20):
         scanned_lines = []
@@ -172,14 +168,13 @@ def check_parallel(line_1, line_2,threshold = 0.5):
         return parallel
 
 def check_perpendicular(line_1, line_2, threshold = 0.5):
-
-	perpendicular = False
-	dirx_1,diry_1 = line_1.direction()
+        perpendicular = False
+        dirx_1,diry_1 = line_1.direction()
         dirx_2,diry_2 = line_2.direction()
         dot = np.abs(dirx_1*dirx_2 + diry_1*diry_2)
         if dot < threshold:
-		perpendicular = True
-	return perpendicular
+                perpendicular = True
+        return perpendicular
 
 def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0):
         averaged_lines = []
@@ -271,7 +266,7 @@ def edge_find(img):
         contour_img = img.copy()
         # finds contours you can from the edge image. Right now it is not working great. You can get the coordinates of these contours here.
         cnts = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL,
-	                        cv2.CHAIN_APPROX_SIMPLE)
+                                cv2.CHAIN_APPROX_SIMPLE)
         
         cnts = cnts[0]
         chosen_cnts = []
@@ -283,98 +278,79 @@ def edge_find(img):
                         contour_size = c.shape[0]
                         
         cnts = [best_contour]
-
         # another method, hough lines, might be better
-	lines = cv2HoughLines(edges, 200)
-
+        lines = cv2HoughLines(edges, 200)
         return edges, cnts, lines
 
 def corner_find (img, debug = False):
-
-	debugPics = []
-	if debug is True : debugPics.append(img)
-
-	## Ensure input image is greyscale
-	grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	if debug is True : debugPics.append(grey_img)
-
-	## Blur the greyscale image
+        debugPics = []
+        if debug is True : debugPics.append(img)
+        ## Ensure input image is greyscale
+        grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if debug is True : debugPics.append(grey_img)
+        ## Blur the greyscale image
         blur_greyscale = cv2.GaussianBlur(grey_img, (5,5), 0)
         if debug is True : debugPics.append(blur_greyscale)
-
         # preprocessing parameters
-	cannyThreshold1 = 50
-	cannyThreshold2 = 150
-	cannyAperture = 3
-	dilateIt = 1
-	erodeIt = 1
-	kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+        cannyThreshold1 = 50
+        cannyThreshold2 = 150
+        cannyAperture = 3
+        dilateIt = 1
+        erodeIt = 1
+        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
 
         ## Apply canny edge detection algo to input blurred image and smooth edges
-	edges = preprocess_image(blur_greyscale, cannyThreshold1, cannyThreshold2, cannyAperture, dilateIt, erodeIt, kernel)
-
-	if debug is True : debugPics.append(edges)
-
-	## post-flooodfill and masking canny parameters
-	postMaskCannyThreshold1 = 15
-	postMaskCannyThreshold2 = 50
-	postMaskCannyAperture = 3
-	## floodfill and mask preprocessed image and edge detector said image
-	masked_edges = floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1, postMaskCannyThreshold2, postMaskCannyAperture)
-
+        edges = preprocess_image(blur_greyscale, cannyThreshold1, cannyThreshold2, cannyAperture, dilateIt, erodeIt, kernel)
+        if debug is True : debugPics.append(edges)
+        ## post-flooodfill and masking canny parameters
+        postMaskCannyThreshold1 = 15
+        postMaskCannyThreshold2 = 50
+        postMaskCannyAperture = 3
+        ## floodfill and mask preprocessed image and edge detector said image
+        masked_edges = floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1, postMaskCannyThreshold2, postMaskCannyAperture)
         ## Find Hough Lines on the edges after masking
-	min_line_length = 0  # Original test value of 50
-	max_line_gap = 0     # Original value of 20
-	threshold = 100      # Original value of 100
-	probabilisticHT = False
-
+        min_line_length = 0  # Original test value of 50
+        max_line_gap = 0     # Original value of 20
+        threshold = 100      # Original value of 100
+        probabilisticHT = False
         lines = cv2HoughLines(masked_edges, threshold, min_line_length, max_line_gap, probabilisticHT)
 
         ## Draw lines on original image for debug plot
-	if debug is True:
-	        org_img_lines = img.copy()
-	        if lines is not None and debug:
-        	    for i in range(0, len(lines)):
-                	rho = lines[i].rho
-	                theta = lines[i].theta
-        	        a = math.cos(theta)
-                	b = math.sin(theta)
-	                x0 = a * rho
-        	        y0 = b * rho
-                	pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-	                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-        	        cv2.line(org_img_lines, pt1, pt2, (123,234,123), 2, cv2.LINE_AA)
-		debugPics.append(org_img_lines)
-
-
+        if debug is True:
+                org_img_lines = img.copy()
+                if lines is not None and debug:
+                        for i in range(0, len(lines)):
+                                rho = lines[i].rho
+                                theta = lines[i].theta
+                                a = math.cos(theta)
+                                b = math.sin(theta)
+                                x0 = a * rho
+                                y0 = b * rho
+                                pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+                                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+                                cv2.line(org_img_lines, pt1, pt2, (123,234,123), 2, cv2.LINE_AA)
+                debugPics.append(org_img_lines)
         ## Find intersection of every line found and if debug over original image
         ## loop over all line pairs to consider if they intersect (if they are not parallel)
-
-	org_img_circles = None
+        org_img_circles = None
         if debug is True : org_img_circles = img.copy() #copy of input image for debug
-
-	threshold = 0.1
-	xy = find_intersections(lines, threshold)
-
-        if debug is True and xy is not None: 
-		for i in range (0, len(xy)) :
-			xyTuple = tuple(xy[i])
-			org_img_circles = cv2.circle(org_img_circles, xyTuple, 25, 255, 5)
-		debugPics.append(org_img_circles)
-
-	return xy, lines, debugPics
+        threshold = 0.1
+        xy = find_intersections(lines, threshold)
+        if debug is True and xy is not None:
+                for i in range (0, len(xy)) :
+                        xyTuple = tuple(xy[i])
+                        org_img_circles = cv2.circle(org_img_circles, xyTuple, 25, 255, 5)
+                debugPics.append(org_img_circles)
+        return xy, lines, debugPics
 
 def preprocess_image( input, cannyThreshold1 = 50, cannyThreshold2 = 150, cannyAperture = 3, dilateIt = 1, erodeIt = 1, filterKernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]]) ) :
-
         ## Apply canny edge detection algo to input blurred image
-	edges = cv2.Canny(input, cannyThreshold1, cannyThreshold2, cannyAperture)
+        edges = cv2.Canny(input, cannyThreshold1, cannyThreshold2, cannyAperture)
         ## Smooth edges so that we can find/draw the lines/contours/intersection better
         edges = cv2.dilate(edges, None, dilateIt)
         edges = cv2.erode(edges, None, erodeIt)
         edges = cv2.filter2D(edges, -1, filterKernel)
-
-	return edges
-
+        return edges
 
 def floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1 = 15, postMaskCannyThreshold2 = 50, postMaskCannyAperture = 3) :
 
@@ -394,22 +370,20 @@ def floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1 = 15, postMas
         bg = cv2.blur(bg, (1,1))
         masked_edges = cv2.Canny(bg, postMaskCannyThreshold1, postMaskCannyThreshold2, postMaskCannyAperture)
         if debugPics is not None : debugPics.append(masked_edges)
-
-	return masked_edges
+        return masked_edges
 
 def cv2HoughLines (edges, threshold, min_line_length = 0, max_line_gap = 0, Probabilistic = False) :
-	lines = []
-	if Probabilistic is False :
-		houghLines = cv2.HoughLines(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap) ### default hough lines
-		if houghLines is not None:
-			for i in range(0, len(houghLines)) :
-				tempLine = line(houghLines[i][0][0], houghLines[i][0][1])
-				lines.append(tempLine)
-	else :
-		houghLinesP = cv2.HoughLinesP(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap)
-		if houghLinesP is not None:
-			for i in range(0, len(houghLinesP)) :    
+        lines = []
+        if Probabilistic is False :
+                houghLines = cv2.HoughLines(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap) ### default hough lines
+                if houghLines is not None:
+                        for i in range(0, len(houghLines)) :
+                                tempLine = line(houghLines[i][0][0], houghLines[i][0][1])
+                                lines.append(tempLine)
+        else :
+                houghLinesP = cv2.HoughLinesP(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap)
+                if houghLinesP is not None:
+                        for i in range(0, len(houghLinesP)):
                                 tempLine = line(houghLinesP[i][0][0], houghLinesP[i][0][1], houghLinesP[i][0][2],houghLinesP[i][0][3])
-				lines.append(tempLine)
-
-	return lines
+                                lines.append(tempLine)
+        return lines
