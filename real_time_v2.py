@@ -8,11 +8,11 @@ import cv2
 import numpy as np
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
 # capture frames from a camera
-#cap = cv2.VideoCapture('videos/videos_final_setup/dummy_sensor_scan_v2.avi')
-cap = cv2.VideoCapture(1)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH,2500);
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2500);
-start_frame_number = 30
+cap = cv2.VideoCapture('videos/videos_final_setup/dummy_sensor_scan.avi')
+#cap = cv2.VideoCapture(1)
+#cap.set(cv2.CAP_PROP_FRAME_WIDTH,2500);
+#cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2500);
+#start_frame_number = 30
 cap.set(cv2.CAP_PROP_FPS, 5)
 # loop runs if capturing has been initialized
 measurement = []
@@ -20,7 +20,7 @@ global_y_cord = 0
 test = True
 frame_rate = 10
 frame_count = 0
-vertical=False
+vertical=True
 while(test):
 
     #should be read by the stage
@@ -36,46 +36,49 @@ while(test):
         break
     # Display an original image
     line_copy = frame.copy()
-    # finds edges,countours, and hough lines in the input image image
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    cutoff, thres_image = cv2.threshold(img, 70, 255, cv2.THRESH_BINARY)
-    thres_edges, thres_cnts, thres_lines = edge_find(thres_image,20,100,350)
-      
-    edges, cnts, lines = edge_find(img,50,160)
-    min_l_1 = 0
-    min_l_y = 9999
+    cutoff_val = int( (np.median(img)-np.min(img))/2.5 + np.min(img) )
+    #print cutoff_val
+    cutoff, thres_image = cv2.threshold(img, cutoff_val, 255, cv2.THRESH_BINARY)
+    # finds edges,countours, and hough lines in the input image image
+    thres_edges, thres_cnts, thres_lines = edge_find(thres_image,220,250,250)
+    lower = 70
+    upper = 129
+    edges, cnts, lines = edge_find(img,lower,upper,300,dilate=1)
+    edge_l = 0
+    edge_l_y = 9999
     max_l_x = 0
     if lines:
         for l in lines:
             if vertical:
                 if (l.x1 > max_l_x):
                     max_l_x = l.x1
-                    min_l_1 = l
+                    edge_l = l
             else:
-                if (l.y1 < min_l_y):
-                    min_l_y = l.y1
-                    min_l_1 = l
-        cv2.line(line_copy,(min_l_1.x1,min_l_1.y1),(min_l_1.x2,min_l_1.y2),(0,0,255),2,cv2.LINE_AA)
-    min_l_2 = 0
-    min_l_y = 9999
-    max_l_x = 0
+                if (l.y1 < edge_l_y):
+                    edge_l_y = l.y1
+                    edge_l = l
+        if edge_l:
+            cv2.line(line_copy,(edge_l.x1,edge_l.y1),(edge_l.x2,edge_l.y2),(0,0,255),2,cv2.LINE_AA)
+        min_l = 0
+        min_l_y = 9999
+        min_l = 0
+        max_l_x = 0
       
-    if thres_lines:
+    if thres_lines and edge_l:
         for l in thres_lines:
             if vertical:
-                if (l.x1 > max_l_x):
-                    max_l_x = l.x1
-                    min_l_2 = l
+                if (np.abs(edge_l.x1-l.x1) > 500) and (np.abs(edge_l.x1-l.x1) < 1200):
+                    if (l.x1 > max_l_x):
+                        max_l_x = l.x1
+                        min_l = l
             else:
-                if (l.y1 < min_l_y):
-                    min_l_y = l.y1
-                    min_l_2 = l
-        cv2.line(line_copy,(min_l_2.x1,min_l_2.y1),(min_l_2.x2,min_l_2.y2),(0,0,255),2,cv2.LINE_AA)
-    if min_l_1 and min_l_2:
-        scanned_lines,distances = distance_between_lines(min_l_1,min_l_2,vertical=vertical)
-        for l in scanned_lines:
-            cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2,cv2.LINE_AA)
+                if np.abs(edge_l.y1-l.y1) > 500 and np.abs(edge_l.y1-l.y1) < 1200:
+                    if (l.y1 < min_l_y):
+                        min_l_y = l.y1
+                        min_l = l
+        if min_l:
+            cv2.line(line_copy,(min_l.x1,min_l.y1),(min_l.x2,min_l.y2),(0,0,255),2,cv2.LINE_AA)
     cv2.namedWindow('Original',cv2.WINDOW_NORMAL)
     cv2.imshow('Original',frame) 
     cv2.resizeWindow('Original', 1024,800)
