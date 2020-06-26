@@ -52,10 +52,14 @@ class line:
                         diry = (self.y2 - self.y1)
                 return dirx,diry
 
-def get_coeff(line):
+def get_coeff(line,vertical=False):
         # x = a*y+b
-        a =  float(line.x2-line.x1)/float(line.y2-line.y1)
-        b = line.x1-a*line.y1
+        if vertical:
+                a =  float(line.x2-line.x1)/float(line.y2-line.y1)
+                b = line.x1-a*line.y1
+        else:
+                a =  float(line.y2-line.y1)/float(line.x2-line.x1)
+                b = line.y1-a*line.x1
         return a,b
 
 def is_point_on_line(line_1, line_2,threshold=20.0):
@@ -134,19 +138,30 @@ def distance_between_line_point(x0,y0,line) :
         ## shortest distance of a point to a line segment (s)
         return dist #(dist x,dist y)
 
-def distance_between_lines(line_1,line_2,npoints = 20):
+def distance_between_lines(line_1,line_2,npoints = 20,vertical=False):
         scanned_lines = []
         distances = []
-        a1,b1 = get_coeff(line_1)
-        a2,b2 = get_coeff(line_2)
-        y_step = (1080.0)/float(npoints)
+        a1,b1 = get_coeff(line_1,vertical=vertical)
+        a2,b2 = get_coeff(line_2,vertical=vertical)
+        if vertical:
+                y_step = (2048.0)/float(npoints)
+        else:
+                y_step = (2448.0)/float(npoints)
         scan_y = 0
-        for i in range(npoints):
-                scan_y = scan_y + y_step
-                scan_x1 = a1*scan_y+b1
-                scan_x2 = a2*scan_y+b2
-                distances.append( (scan_y, np.abs(scan_x1-scan_x2)) )
-                scanned_lines.append( line(int(scan_x1),int(scan_y),int(scan_x2),int(scan_y)) )
+        if vertical:
+                for i in range(npoints):
+                        scan_y = scan_y + y_step
+                        scan_x1 = a1*scan_y+b1
+                        scan_x2 = a2*scan_y+b2
+                        distances.append( (scan_y, np.abs(scan_x1-scan_x2)) )
+                        scanned_lines.append( line(int(scan_x1),int(scan_y),int(scan_x2),int(scan_y)) )
+        else:
+                for i in range(npoints):
+                        scan_y = scan_y + y_step
+                        scan_x1 = a1*scan_y+b1
+                        scan_x2 = a2*scan_y+b2
+                        distances.append( (scan_y, np.abs(scan_x1-scan_x2)) )
+                        scanned_lines.append( line(int(scan_y),int(scan_x1),int(scan_y),int(scan_x2)) )
         return scanned_lines,distances
 
 def is_line_close(line_1, line_2,threshold=50.0):
@@ -247,16 +262,16 @@ def rphi_intersection(line1, line2):
     r,phi = xy_to_rphi(x0,y0)
     return [[r,phi]]
 
-def edge_find(img):
+def edge_find(img,cannyThreshold1 = 10, cannyThreshold2 = 20,hough_lenght=300,dilate=1):
 
         #runs the edge finding algorithm. The min and max value of Canny are very important to tune!
 
 
         # preprocessing parameters
-        cannyThreshold1 = 30
-        cannyThreshold2 = 100
-        cannyAperture = 3
-        dilateIt = 1
+        #cannyThreshold1 = 10
+        #cannyThreshold2 = 120
+        cannyAperture = 5
+        dilateIt = dilate
         erodeIt = 1
         kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
 
@@ -279,7 +294,7 @@ def edge_find(img):
                         
         cnts = [best_contour]
         # another method, hough lines, might be better
-        lines = cv2HoughLines(edges, 200)
+        lines = cv2HoughLines(edges, hough_lenght)
         return edges, cnts, lines
 
 def corner_find (img, debug = False):
@@ -343,9 +358,23 @@ def corner_find (img, debug = False):
                 debugPics.append(org_img_circles)
         return xy, lines, debugPics
 
-def preprocess_image( input, cannyThreshold1 = 50, cannyThreshold2 = 150, cannyAperture = 3, dilateIt = 1, erodeIt = 1, filterKernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]]) ) :
+def preprocess_image( input, cannyThreshold1 = 50, cannyThreshold2 = 150, cannyAperture = 3, dilateIt = 2, erodeIt = 2, filterKernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]]) ) :
         ## Apply canny edge detection algo to input blurred image
-        edges = cv2.Canny(input, cannyThreshold1, cannyThreshold2, cannyAperture)
+
+        filtered = cv2.bilateralFilter(input, 5, 200, 200)
+        filtered = cv2.GaussianBlur(filtered, (3, 3), 0)
+        #filtered = input
+        v = np.median(filtered)
+        sigma = 0.05
+        #---- apply optimal Canny edge detection using the computed median----
+        #lower_thresh = int(max(0, (1.0 - sigma) * v))
+        #upper_thresh = int(min(255, (1.0 + sigma) * v))
+        #lower_thresh = 10
+        #upper_thresh = 80
+        lower_thresh = cannyThreshold1
+        upper_thresh = cannyThreshold2
+        
+        edges = cv2.Canny(filtered, lower_thresh, upper_thresh, 3)
         ## Smooth edges so that we can find/draw the lines/contours/intersection better
         edges = cv2.dilate(edges, None, dilateIt)
         edges = cv2.erode(edges, None, erodeIt)
