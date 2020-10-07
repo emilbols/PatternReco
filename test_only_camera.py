@@ -10,8 +10,8 @@ from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_ne
 #cap = cv2.VideoCapture('videos/edge_scan.mp4')
 cap = cv2.VideoCapture(1)
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
+#cap.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
+#cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
 cap.set(cv2.CAP_PROP_FPS,5);
 
 # loop runs if capturing has been initialized
