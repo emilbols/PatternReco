@@ -42,20 +42,38 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
 
+def setup_stage(dll_ref,PS,ComPort,speed,absolute):
+    stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
+    stage=dll_ref.PS10_MotorInit(PS, 1)
+    stage=dll_ref.PS10_SetTargetMode(PS, 1, absolute)
+    if speed > 0:
+        stage=dll_ref.PS10_SetPosF(PS, 1, speed)
+    return dll_ref,stage
 
+
+
+
+mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,0)
+mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,0)
+mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
+
+GetPositionEx=my_dll.PS10_GetPositionEx
+GetPositionEx.restype = ctypes.c_double
+   
+
+#in case this setup_stage functions works as intented we can remove this.
+"""
 xstage=mydll.PS10_Connect(xPS, 0, xComPort, 9600,0,0,0,0)
 xstage=mydll.PS10_MotorInit(xPS, nAxis)
 ystage=mydll.PS10_Connect(yPS, 0, yComPort, 9600,0,0,0,0)
 ystage=mydll.PS10_MotorInit(yPS, nAxis)
 zstage=mydll.PS10_Connect(zPS, 0, zComPort, 9600,0,0,0,0)
 zstage=mydll.PS10_MotorInit(zPS, nAxis)
-
 # loop runs if capturing has been initialized
 # 0 is relative, i guess 1 would be absolute
 xstage=mydll.PS10_SetTargetMode(xPS, nAxis, 0)
 ystage=mydll.PS10_SetTargetMode(yPS, nAxis, 0)
 zstage=mydll.PS10_SetTargetMode(zPS, nAxis, 1)
-
 # set velocity 
 if nPosF > 0:
     xstage=mydll.PS10_SetPosF(xPS, nAxis, nPosF)
@@ -63,39 +81,42 @@ if nPosF > 0:
     zstage=mydll.PS10_SetPosF(zPS, nAxis, nPosF)
 PS10_GetPositionEx=mydll.PS10_GetPositionEx
 PS10_GetPositionEx.restype = ctypes.c_double
-
 xreadout=PS10_GetPositionEx(xPS, nAxis)
 yreadout=PS10_GetPositionEx(yPS, nAxis)
 zreadout=PS10_GetPositionEx(zPS, nAxis)
+"""
 
-xstage=mydll.PS10_GoRef(xPS, nAxis, 4)
+
+#Initiliaze stages
+xstage = mydll.PS10_GoRef(xPS, nAxis, 4)
 xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 while xstate > 0: 
     xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 
-print("Axis is in position.")
-xreadout=PS10_GetPositionEx(xPS, nAxis)
+print("x-axis is in position.")
+xreadout=GetPositionEx(xPS, nAxis)
 print( "Position=%.3f" %(xreadout) )
-time.sleep(2)
 
 ystage=mydll.PS10_GoRef(yPS, nAxis, 4)
+
 ystate = mydll.PS10_GetMoveState(yPS, nAxis)
 while ystate > 0: 
     ystate = mydll.PS10_GetMoveState(yPS, nAxis)
 
-print("Axis is in position.")
+print("y-axis is in initial position.")
 yreadout=PS10_GetPositionEx(yPS, nAxis)
 print( "Position=%.3f" %(yreadout) )
-time.sleep(2)
+
 zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_value), 1)
 zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 while zstate > 0: 
     zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 
-print("Axis is in position.")
+print("z-axis is in position.")
 zreadout=PS10_GetPositionEx(zPS, nAxis)
 print( "Position=%.3f" %(zreadout) )
 zstage=mydll.PS10_SetTargetMode(zPS, nAxis, 0)
+print("setting z-axis to relative positioning mode")
 time.sleep(2)
 
 
@@ -207,6 +228,7 @@ while(zstate > 0):
 
 
 # close interface
+
 closingx=mydll.PS10_Disconnect(xPS)
 closingy=mydll.PS10_Disconnect(yPS)
 closingz=mydll.PS10_Disconnect(zPS)
