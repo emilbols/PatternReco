@@ -9,6 +9,7 @@ from ctypes import windll, c_double
 import sys, time
 import os.path
 import numpy as np
+from threading import Thread
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
 
 class VideoFeedHandler(object):
@@ -20,15 +21,19 @@ class VideoFeedHandler(object):
         
         self.video_file = video_file_name
         self.video_file_name = video_file_name + '.avi'
-        self.capture = cv2.VideoCapture(src,cv2.CAP_V4L )
+        self.capture = cv2.VideoCapture(src)
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
 
         # Default resolutions of the frame are obtained (system dependent)
-        self.frame_width = int(self.capture.get(3))
+        #self.frame_width = int(self.capture.get(3))
+        #print(self.frame_width)
+        #self.frame_height = int(self.capture.get(4))
+        #print(self.frame_height)
+        self.frame_width = 1024
         print(self.frame_width)
-        self.frame_height = int(self.capture.get(4))
-        print(self.frame_height)    
+        self.frame_height = 1024
+        print(self.frame_height) 
         # Set up codec and output video settings
         #self.codec = cv2.VideoWriter_fourcc('M','J','P','G')
         #self.output_video = cv2.VideoWriter(self.video_file_name, self.codec, 30, (self.frame_width, self.frame_height))
@@ -66,7 +71,7 @@ class VideoFeedHandler(object):
 
     def show_processed_frame(self):
         # Display frames in main program
-        if self.frame is not 0:
+        if True:
             processed_frame, _, _ = edge_find(self.frame, 220,250,250)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
             cv2.imshow("processed_frame", processed_frame)
@@ -92,17 +97,17 @@ class VideoFeedHandler(object):
 
 video_feed = VideoFeedHandler('Camera_1', 0)
 
-xComPort=5
-yComPort=7
+xComPort=3
+yComPort=5
 zComPort=4
 xPS = 1
 yPS = 2
 zPS = 3
 nAxis=1
-nPosF=10000
-xDistance=0.0
+nPosF=5000
+xDistance=5.0
 yDistance=0.0
-zDistance=0.0
+zDistance=3.834
 nExport=0
 z_value=0.0
 
@@ -128,7 +133,7 @@ mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,0)
 mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,0)
 mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
 
-GetPositionEx=my_dll.PS10_GetPositionEx
+GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
    
 
@@ -157,7 +162,7 @@ yreadout=PS10_GetPositionEx(yPS, nAxis)
 zreadout=PS10_GetPositionEx(zPS, nAxis)
 """
 
-
+"""
 #Initiliaze stages
 xstage = mydll.PS10_GoRef(xPS, nAxis, 4)
 xstate = mydll.PS10_GetMoveState(xPS, nAxis)
@@ -190,7 +195,7 @@ zstage=mydll.PS10_SetTargetMode(zPS, nAxis, 0)
 print("setting z-axis to relative positioning mode")
 time.sleep(2)
 
-
+"""
 #out.write(frame)
 #should be read by the stage
                                               
@@ -198,19 +203,22 @@ time.sleep(2)
 measurement = []
 global_y_cord = 0
 test = True
+
+
+
 xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(xDistance), 1)
 xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 
 while(xstate > 0):
   
     #should be read by the stage
-    xreadout=PS10_GetPositionEx(xPS, nAxis)
+    xreadout=GetPositionEx(xPS, nAxis)
     print( "Position=%.3f" %(xreadout) )
     # reads frames from a camera
     xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
 
 
-xreadout=PS10_GetPositionEx(xPS, nAxis)
+xreadout=GetPositionEx(xPS, nAxis)
 print( "Position=%.3f" %(xreadout) )
 
 while xstate > 0:
@@ -224,13 +232,13 @@ ystate = mydll.PS10_GetMoveState(yPS, nAxis)
 while(ystate > 0):
   
     #should be read by the stage
-    yreadout=PS10_GetPositionEx(yPS, nAxis)
+    yreadout=GetPositionEx(yPS, nAxis)
     print( "Position=%.3f" %(yreadout) )
     # reads frames from a camera
     ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
 
 
-    
+"""    
 time.sleep(5)
 
 xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(-xDistance), 1)
@@ -239,18 +247,18 @@ xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 while(xstate > 0):
   
     #should be read by the stage
-    xreadout=PS10_GetPositionEx(xPS, nAxis)
+    xreadout=GetPositionEx(xPS, nAxis)
     print( "Position=%.3f" %(xreadout) )
     # reads frames from a camera
     xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
 
 
 
-xreadout=PS10_GetPositionEx(xPS, nAxis)
+xreadout=GetPositionEx(xPS, nAxis)
 print( "Position=%.3f" %(xreadout) )
 while xstate > 0:
     xstate = mydll.PS10_GetMoveState(xPS, nAxis)
-
+"""
 time.sleep(5)
 
 ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(-yDistance), 1)
@@ -259,7 +267,7 @@ ystate = mydll.PS10_GetMoveState(yPS, nAxis)
 while(ystate > 0):
   
     #should be read by the stage
-    yreadout=PS10_GetPositionEx(yPS, nAxis)
+    yreadout=GetPositionEx(yPS, nAxis)
     print( "Position=%.3f" %(yreadout) )
     # reads frames from a camera
     ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
@@ -274,7 +282,7 @@ zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 while(zstate > 0):
   
     #should be read by the stage
-    zreadout=PS10_GetPositionEx(zPS, nAxis)
+    zreadout=GetPositionEx(zPS, nAxis)
     print( "Position=%.3f" %(zreadout) )
     # reads frames from a camera
     zstate = mydll.PS10_GetMoveState(zPS, nAxis)
@@ -283,7 +291,7 @@ while(zstate > 0):
 
 
 # close interface
-
+cv2.imwrite('image1.jpg',video_feed.frame)
 closingx=mydll.PS10_Disconnect(xPS)
 closingy=mydll.PS10_Disconnect(yPS)
 closingz=mydll.PS10_Disconnect(zPS)
