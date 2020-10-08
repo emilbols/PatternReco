@@ -11,7 +11,7 @@ import os.path
 import numpy as np
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
 
-class VideoWriterWidget(object):
+class VideoFeedHandler(object):
     def __init__(self, video_file_name, src=0):
         # Create a VideoCapture object
         self.frame = 0
@@ -90,7 +90,7 @@ class VideoWriterWidget(object):
         self.recording_thread.daemon = True
         self.recording_thread.start()
 
-video_feed = VideoWriterWidget('Camera_1', 0)
+video_feed = VideoFeedHandler('Camera_1', 0)
 
 xComPort=5
 yComPort=7
