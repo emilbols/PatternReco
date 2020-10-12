@@ -12,6 +12,14 @@ import numpy as np
 from threading import Thread
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
 
+
+def PixelCordToMicronCord(p):
+    x = -p[0]*1.14547537228
+    y = p[1]*1.14547537228
+    converted = (x,y)
+    return converted
+                
+
 class VideoFeedHandler(object):
     def __init__(self, video_file_name, src, processing_function):
         # Create a VideoCapture object
@@ -99,13 +107,17 @@ class VideoFeedHandler(object):
 
 video_feed = VideoFeedHandler('Camera_1', 0, process_image)
 test_video_only = True
+
 if test_video_only:
     time.sleep(100)
     quit()
+
     
+csvfile = open('measurementA.csv', 'w+')    
 xComPort=3
 yComPort=5
 zComPort=4
+
 xPS = 1
 yPS = 2
 zPS = 3
@@ -113,9 +125,9 @@ nAxis=1
 nPosF=5000
 xDistance=0.0
 yDistance=0.0
-zDistance=3.834
+zDistance=0.0
 nExport=0
-z_value=0.0
+z_value=3.834
 
 
 dll_name = "ps10.dll"
@@ -165,6 +177,12 @@ print("y-axis is in initial position.")
 yreadout=PS10_GetPositionEx(yPS, nAxis)
 print( "Position=%.3f" %(yreadout) )
 
+
+"""
+#out.write(frame)
+#should be read by the stage
+                                              
+
 zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_value), 1)
 zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 while zstate > 0: 
@@ -173,32 +191,36 @@ while zstate > 0:
 print("z-axis is in position.")
 zreadout=PS10_GetPositionEx(zPS, nAxis)
 print( "Position=%.3f" %(zreadout) )
-zstage=mydll.PS10_SetTargetMode(zPS, nAxis, 0)
-print("setting z-axis to relative positioning mode")
 time.sleep(2)
 
+ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(yDistance), 1)
+ystate = mydll.PS10_GetMoveState(yPS, nAxis)
+while(ystate > 0):
+    #should be read by the stage
+    yreadout=GetPositionEx(yPS, nAxis)
+    print( "Position=%.3f" %(yreadout) )
+    # reads frames from a camera
+    distances = video_feed.processed_objects
+    if distances:
+        for p in distances:
+            converted = PixelCordToMicronCord(p)
+            y = yreadout+converted[0]
+            dist = converted[1]
+            writer.writerow([y,dist])
+    ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
+
+
 """
-#out.write(frame)
-#should be read by the stage
-                                              
-
-measurement = []
-global_y_cord = 0
-test = True
-
-
-
 xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(xDistance), 1)
 xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 
 while(xstate > 0):
-  
-    #should be read by the stage
     xreadout=GetPositionEx(xPS, nAxis)
     print( "Position=%.3f" %(xreadout) )
-    # reads frames from a camera
-    xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
-
+    # reads frames from a camera  
+    #should be read by the stage
+    xstate = mydll.PS10_GetMoveState(xPS, nAxis)
+ 
 
 xreadout=GetPositionEx(xPS, nAxis)
 print( "Position=%.3f" %(xreadout) )
@@ -207,20 +229,7 @@ while xstate > 0:
     xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 
 time.sleep(5)
-
-ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(yDistance), 1)
-ystate = mydll.PS10_GetMoveState(yPS, nAxis)
-
-while(ystate > 0):
-  
-    #should be read by the stage
-    yreadout=GetPositionEx(yPS, nAxis)
-    print( "Position=%.3f" %(yreadout) )
-    # reads frames from a camera
-    ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
-
-
-"""    
+    
 time.sleep(5)
 
 xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(-xDistance), 1)
@@ -240,7 +249,7 @@ xreadout=GetPositionEx(xPS, nAxis)
 print( "Position=%.3f" %(xreadout) )
 while xstate > 0:
     xstate = mydll.PS10_GetMoveState(xPS, nAxis)
-"""
+
 time.sleep(5)
 
 ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(-yDistance), 1)
@@ -269,7 +278,7 @@ while(zstate > 0):
     # reads frames from a camera
     zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 
-
+"""
 
 
 # close interface
