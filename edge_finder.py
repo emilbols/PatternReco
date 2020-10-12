@@ -195,7 +195,7 @@ def distance_between_line_point(x0,y0,line) :
         ## shortest distance of a point to a line segment (s)
         return dist #(dist x,dist y)
 
-def distance_between_lines(line_1,line_2,npoints = 20,vertical=False):
+def distance_between_lines(line_1,line_2,npoints = 5,vertical=False):
         scanned_lines = []
         distances = []
         a1,b1 = get_coeff(line_1)
