@@ -8,11 +8,11 @@ import numpy as np
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
 # capture frames from a camera
 #cap = cv2.VideoCapture('videos/edge_scan.mp4')
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 #cap.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
 #cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
-cap.set(cv2.CAP_PROP_FPS,5);
+cap.set(cv2.CAP_PROP_FPS,25);
 
 # loop runs if capturing has been initialized
 measurement = []

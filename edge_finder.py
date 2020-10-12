@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 import cv2
 import os
-
+from copy import deepcopy
 class point:
         x = 0
         y = 0
@@ -32,6 +32,11 @@ class line:
                 else:
                         print ("\nIncorrect line constructor\n")
                         os._exit(0)
+                if np.abs(self.y2-self.y1) < np.abs(self.x2-self.x1):
+                        self.vertical = False
+                else:
+                        self.vertical = True
+
 
         def polar_coords (self):
                 return self.rho, self.theta
@@ -52,9 +57,9 @@ class line:
                         diry = (self.y2 - self.y1)
                 return dirx,diry
 
-def get_coeff(line,vertical=False):
+def get_coeff(line):
         # x = a*y+b
-        if vertical:
+        if line.vertical:
                 a =  float(line.x2-line.x1)/float(line.y2-line.y1)
                 b = line.x1-a*line.y1
         else:
@@ -113,6 +118,23 @@ def rho_theta_to_xy(rho,theta):
                 x1 = temp_x2
         return x1,y1,x2,y2
 
+def process_image(color_image):
+	image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
+        thres_image = cv2.GaussianBlur(thres_image,(9,9),0)
+        kernel = np.ones((5, 5), np.uint8)
+        thres_image = cv2.dilate(thres_image, kernel, 1000)
+        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,0,150,250,dilate=1)
+        #thres_edges = cv2.erode(thres_edges,kernel,1)
+        #averaged_thres_lines = average_over_nearby_lines(thres_lines)
+        averaged_thres_lines = thres_lines
+        lines_img = deepcopy(color_image)
+        if averaged_thres_lines:
+           for l in averaged_thres_lines:
+               cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
+        return thres_edges, lines_img, thres_image
+                                    
+
 def xy_to_rho_theta(x1,y1,x2,y2):
         x0 = (x1+x2)/2
         y0 = (y1+y2)/2
@@ -130,9 +152,22 @@ def select_lines(lines):
                         selected_lines.append(l)
         return selected_lines
 
+
 def distance_between_points(x1,y1,x2,y2) :
         distance = np.sqrt( (y2-y1)**2 + (x2-x1)**2 )
         return distance ## absolute distance
+
+def select_line_pairs(lines):
+        selected_lines = []
+        for l in lines:
+                for z in lines:
+                        d1 = distance_between_points(l.x1,l.y1,z.x1,z.y1)
+                        d2 = distance_between_points(l.x2,l.y2,z.x2,z.y2)
+                        d = (d1+d2)/2.0
+                        if (d > 600 and d < 1000):
+                                selected_lines.append([l,z])
+        return selected_lines
+
 
 def distance_between_line_point(x0,y0,line) :
         ## shortest distance of a point to a line segment (s)
@@ -141,8 +176,8 @@ def distance_between_line_point(x0,y0,line) :
 def distance_between_lines(line_1,line_2,npoints = 20,vertical=False):
         scanned_lines = []
         distances = []
-        a1,b1 = get_coeff(line_1,vertical=vertical)
-        a2,b2 = get_coeff(line_2,vertical=vertical)
+        a1,b1 = get_coeff(line_1)
+        a2,b2 = get_coeff(line_2)
         if vertical:
                 y_step = (2048.0)/float(npoints)
         else:
@@ -191,7 +226,7 @@ def check_perpendicular(line_1, line_2, threshold = 0.5):
                 perpendicular = True
         return perpendicular
 
-def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 50.0):
+def average_over_nearby_lines(xy_lines,dot_threshold = 0.5,dist_threshold = 20.0):
         averaged_lines = []
         already_averaged = []
         n_lines = len(xy_lines)
@@ -294,7 +329,10 @@ def edge_find(img,cannyThreshold1 = 10, cannyThreshold2 = 20,hough_lenght=300,di
                         
         cnts = [best_contour]
         # another method, hough lines, might be better
-        lines = cv2HoughLines(edges, hough_lenght)
+        min_line_length = 100
+        max_line_gap = 5
+        probabilisticHT = True
+        lines = cv2HoughLines(edges, hough_lenght,min_line_length, max_line_gap, probabilisticHT)
         return edges, cnts, lines
 
 def corner_find (img, debug = False):
@@ -376,8 +414,8 @@ def preprocess_image( input, cannyThreshold1 = 50, cannyThreshold2 = 150, cannyA
         
         edges = cv2.Canny(filtered, lower_thresh, upper_thresh, 3)
         ## Smooth edges so that we can find/draw the lines/contours/intersection better
-        edges = cv2.dilate(edges, None, dilateIt)
-        edges = cv2.erode(edges, None, erodeIt)
+        edges = cv2.dilate(edges, filterKernel, dilateIt)
+        #edges = cv2.erode(edges, None, erodeIt)
         edges = cv2.filter2D(edges, -1, filterKernel)
         return edges
 
@@ -401,16 +439,16 @@ def floodfill_mask_image(edges, debugPics, postMaskCannyThreshold1 = 15, postMas
         if debugPics is not None : debugPics.append(masked_edges)
         return masked_edges
 
-def cv2HoughLines (edges, threshold, min_line_length = 0, max_line_gap = 0, Probabilistic = False) :
+def cv2HoughLines (edges, threshold, min_line_length = 0, max_line_gap = 5, Probabilistic = False, rho = 1, angle = np.pi/180) :
         lines = []
         if Probabilistic is False :
-                houghLines = cv2.HoughLines(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap) ### default hough lines
+                houghLines = cv2.HoughLines(edges,rho,angle, threshold, None, 0, 0) ### default hough lines
                 if houghLines is not None:
                         for i in range(0, len(houghLines)) :
                                 tempLine = line(houghLines[i][0][0], houghLines[i][0][1])
                                 lines.append(tempLine)
         else :
-                houghLinesP = cv2.HoughLinesP(edges,1,np.pi/180, threshold, None, min_line_length, max_line_gap)
+                houghLinesP = cv2.HoughLinesP(edges,rho,angle, threshold, None, min_line_length, max_line_gap)
                 if houghLinesP is not None:
                         for i in range(0, len(houghLinesP)):
                                 tempLine = line(houghLinesP[i][0][0], houghLinesP[i][0][1], houghLinesP[i][0][2],houghLinesP[i][0][3])
