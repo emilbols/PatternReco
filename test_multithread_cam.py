@@ -12,10 +12,13 @@ class VideoFeedHandler(object):
         self.frame = 0
         self.processing_function = processing_function
         self.processed_frame = 0
+        self.processed_objects = 0
         self.frame_name = 'cam_output'+str(src)
         self.video_file = video_file_name
         self.video_file_name = video_file_name + '.avi'
+
         self.capture = cv2.VideoCapture(src)
+
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
 
@@ -66,11 +69,12 @@ class VideoFeedHandler(object):
     def show_processed_frame(self):
         # Display frames in main program
         if True:
-            processed_frame, lines_img, _, _, _, _ = self.processing_function(self.frame)
+            processed_frame, lines_img, _, _, _, distances = self.processing_function(self.frame)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
             cv2.imshow("processed_frame", lines_img)
             cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)
-
+            self.processed_objects = distances
+            
     def save_frame(self):
         # Save obtained frame into video output file
         self.output_video.write(self.frame)
@@ -89,11 +93,12 @@ class VideoFeedHandler(object):
         self.recording_thread.daemon = True
         self.recording_thread.start()
 
+#src_file = 'videos/dummy_sensor_scan.avi'
 video_writer_widget1 = VideoFeedHandler('Camera_1', 0,process_image)
 
 time.sleep(3)
 for i in range(0,15):
-           
+    print(video_writer_widget1.processed_objects)
     time.sleep(1)
-    print(i)
+    #print(i)
   
