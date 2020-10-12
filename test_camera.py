@@ -59,8 +59,8 @@ global_y_cord = 0
 test = True
 result1=mydll.PS10_MoveEx(1, nAxis, c_double(dDistance), 1)
 state = mydll.PS10_GetMoveState(1, nAxis) 
-while(state > 0):
-  
+
+while(state > 0):  
     #should be read by the stage
     global_y_cord = global_y_cord + 5.0
     result2=PS10_GetPositionEx(1, nAxis)

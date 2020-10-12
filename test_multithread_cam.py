@@ -2,28 +2,33 @@
 import cv2
 from threading import Thread
 import numpy as np
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
+from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
 import time
+from copy import deepcopy
 
-#
-class VideoWriterWidget(object):
-    def __init__(self, video_file_name, src=0):
+class VideoFeedHandler(object):
+    def __init__(self, video_file_name, src, processing_function):
         # Create a VideoCapture object
         self.frame = 0
+	self.processing_function = processing_function
         self.processed_frame = 0
         self.frame_name = 'cam_output'+str(src)
         
         self.video_file = video_file_name
         self.video_file_name = video_file_name + '.avi'
-        self.capture = cv2.VideoCapture(src,cv2.CAP_V4L )
+        self.capture = cv2.VideoCapture(src,cv2.CAP_V4L)
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
 
         # Default resolutions of the frame are obtained (system dependent)
-        self.frame_width = int(self.capture.get(3))
+        #self.frame_width = int(self.capture.get(3))
+        #print(self.frame_width)
+        #self.frame_height = int(self.capture.get(4))
+        #print(self.frame_height)
+        self.frame_width = 1024
         print(self.frame_width)
-        self.frame_height = int(self.capture.get(4))
-        print(self.frame_height)    
+        self.frame_height = 1024
+        print(self.frame_height) 
         # Set up codec and output video settings
         #self.codec = cv2.VideoWriter_fourcc('M','J','P','G')
         #self.output_video = cv2.VideoWriter(self.video_file_name, self.codec, 30, (self.frame_width, self.frame_height))
@@ -61,10 +66,10 @@ class VideoWriterWidget(object):
 
     def show_processed_frame(self):
         # Display frames in main program
-        if self.frame is not 0:
-            processed_frame, lines, _ = edge_find(self.frame, 220,250,250)
+        if True:
+            processed_frame, lines_img, _ = self.processing_function(self.frame)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
-            cv2.imshow("processed_frame", processed_frame)
+            cv2.imshow("processed_frame", lines_img)
             cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)
 
     def save_frame(self):
@@ -85,9 +90,7 @@ class VideoWriterWidget(object):
         self.recording_thread.daemon = True
         self.recording_thread.start()
 
-
-
-video_writer_widget1 = VideoWriterWidget('Camera_1', 0)
+video_writer_widget1 = VideoFeedHandler('Camera_1', 0,process_image)
 
 time.sleep(3)
 for i in range(0,15):

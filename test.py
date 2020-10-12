@@ -10,15 +10,15 @@ import sys, time
 import os.path
 import numpy as np
 from threading import Thread
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
+from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
 
 class VideoFeedHandler(object):
-    def __init__(self, video_file_name, src=0):
+    def __init__(self, video_file_name, src, processing_function):
         # Create a VideoCapture object
         self.frame = 0
         self.processed_frame = 0
         self.frame_name = 'cam_output'+str(src)
-        
+        self.processing_function = processing_function
         self.video_file = video_file_name
         self.video_file_name = video_file_name + '.avi'
         self.capture = cv2.VideoCapture(src)
@@ -72,9 +72,9 @@ class VideoFeedHandler(object):
     def show_processed_frame(self):
         # Display frames in main program
         if True:
-            processed_frame, _, _ = edge_find(self.frame, 220,250,250)
+            processed_frame, lines_img, _ = self.processing_function(self.frame)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
-            cv2.imshow("processed_frame", processed_frame)
+            cv2.imshow("processed_frame", lines_img)
             cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)
 
     def save_frame(self):
@@ -95,7 +95,7 @@ class VideoFeedHandler(object):
         self.recording_thread.daemon = True
         self.recording_thread.start()
 
-video_feed = VideoFeedHandler('Camera_1', 0)
+video_feed = VideoFeedHandler('Camera_1', 0, process_image)
 
 xComPort=3
 yComPort=5
@@ -105,7 +105,7 @@ yPS = 2
 zPS = 3
 nAxis=1
 nPosF=5000
-xDistance=5.0
+xDistance=0.0
 yDistance=0.0
 zDistance=3.834
 nExport=0
@@ -137,30 +137,6 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
    
 
-#in case this setup_stage functions works as intented we can remove this.
-"""
-xstage=mydll.PS10_Connect(xPS, 0, xComPort, 9600,0,0,0,0)
-xstage=mydll.PS10_MotorInit(xPS, nAxis)
-ystage=mydll.PS10_Connect(yPS, 0, yComPort, 9600,0,0,0,0)
-ystage=mydll.PS10_MotorInit(yPS, nAxis)
-zstage=mydll.PS10_Connect(zPS, 0, zComPort, 9600,0,0,0,0)
-zstage=mydll.PS10_MotorInit(zPS, nAxis)
-# loop runs if capturing has been initialized
-# 0 is relative, i guess 1 would be absolute
-xstage=mydll.PS10_SetTargetMode(xPS, nAxis, 0)
-ystage=mydll.PS10_SetTargetMode(yPS, nAxis, 0)
-zstage=mydll.PS10_SetTargetMode(zPS, nAxis, 1)
-# set velocity 
-if nPosF > 0:
-    xstage=mydll.PS10_SetPosF(xPS, nAxis, nPosF)
-    ystage=mydll.PS10_SetPosF(yPS, nAxis, nPosF)
-    zstage=mydll.PS10_SetPosF(zPS, nAxis, nPosF)
-PS10_GetPositionEx=mydll.PS10_GetPositionEx
-PS10_GetPositionEx.restype = ctypes.c_double
-xreadout=PS10_GetPositionEx(xPS, nAxis)
-yreadout=PS10_GetPositionEx(yPS, nAxis)
-zreadout=PS10_GetPositionEx(zPS, nAxis)
-"""
 
 """
 #Initiliaze stages
@@ -291,7 +267,6 @@ while(zstate > 0):
 
 
 # close interface
-cv2.imwrite('image1.jpg',video_feed.frame)
 closingx=mydll.PS10_Disconnect(xPS)
 closingy=mydll.PS10_Disconnect(yPS)
 closingz=mydll.PS10_Disconnect(zPS)
