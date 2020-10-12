@@ -67,7 +67,7 @@ class VideoFeedHandler(object):
     def show_processed_frame(self):
         # Display frames in main program
         if True:
-            processed_frame, lines_img, _ = self.processing_function(self.frame)
+            processed_frame, lines_img, _, _, _, _ = self.processing_function(self.frame)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
             cv2.imshow("processed_frame", lines_img)
             cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)
