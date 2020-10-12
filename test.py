@@ -17,6 +17,7 @@ class VideoFeedHandler(object):
         # Create a VideoCapture object
         self.frame = 0
         self.processed_frame = 0
+        self.processed_objects = 0
         self.frame_name = 'cam_output'+str(src)
         self.processing_function = processing_function
         self.video_file = video_file_name
@@ -72,11 +73,12 @@ class VideoFeedHandler(object):
     def show_processed_frame(self):
         # Display frames in main program
         if True:
-            processed_frame, lines_img, _, _, _, _ = self.processing_function(self.frame)
+            processed_frame, lines_img, _, _, _, distances = self.processing_function(self.frame)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
             cv2.imshow("processed_frame", lines_img)
             cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)
-
+            self.processed_objects = distances
+            
     def save_frame(self):
         # Save obtained frame into video output file
         self.output_video.write(self.frame)
@@ -96,7 +98,11 @@ class VideoFeedHandler(object):
         self.recording_thread.start()
 
 video_feed = VideoFeedHandler('Camera_1', 0, process_image)
-
+test_video_only = True
+if test_video_only:
+    time.sleep(100)
+    quit()
+    
 xComPort=3
 yComPort=5
 zComPort=4
