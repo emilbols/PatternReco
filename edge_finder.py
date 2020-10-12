@@ -145,14 +145,14 @@ def select_lines(lines):
         for l in selected_lines_v1:
                 if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
                         selected_lines_v2.append(l)
-                elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550:
+                elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 650 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 950:
                         selected_lines_v2.append(l)
-        #elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 650 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 950:
+        #elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550:
         #        selected_lines_v2.append(l)
         return selected_lines_v2
 
 def process_image(color_image):
-	image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
         thres_image = cv2.GaussianBlur(thres_image,(9,9),0)
         kernel = np.ones((5, 5), np.uint8)
@@ -195,7 +195,7 @@ def distance_between_line_point(x0,y0,line) :
         ## shortest distance of a point to a line segment (s)
         return dist #(dist x,dist y)
 
-def distance_between_lines(line_1,line_2,npoints = 20,vertical=False):
+def distance_between_lines(line_1,line_2,npoints = 5,vertical=False):
         scanned_lines = []
         distances = []
         a1,b1 = get_coeff(line_1)
