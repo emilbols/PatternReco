@@ -10,15 +10,15 @@ class VideoFeedHandler(object):
     def __init__(self, video_file_name, src, processing_function):
         # Create a VideoCapture object
         self.frame = 0
-	self.processing_function = processing_function
+        self.processing_function = processing_function
         self.processed_frame = 0
         self.processed_objects = 0
         self.frame_name = 'cam_output'+str(src)
-        
         self.video_file = video_file_name
         self.video_file_name = video_file_name + '.avi'
-        #cv2.CAP_V4L
-        self.capture = cv2.VideoCapture(src,cv2.CAP_V4L)
+
+        self.capture = cv2.VideoCapture(src)
+
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
 

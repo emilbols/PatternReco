@@ -12,6 +12,7 @@ import numpy as np
 from threading import Thread
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
 from video_tools import VideoFeedHandler
+import csv
 
 def PixelCordToMicronCord(p):
     x = -p[0]*1.14547537228
@@ -22,7 +23,7 @@ def PixelCordToMicronCord(p):
 
 
 video_feed = VideoFeedHandler('Camera_1', 0, process_image)
-test_video_only = True
+test_video_only = False
 
 if test_video_only:
     time.sleep(100)
@@ -30,6 +31,7 @@ if test_video_only:
 
     
 csvfile = open('measurement.csv', 'w+')    
+writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 xComPort=3
 yComPort=5
 zComPort=4
@@ -38,9 +40,9 @@ xPS = 1
 yPS = 2
 zPS = 3
 nAxis=1
-nPosF=5000
+nPosF=2500
 xDistance=0.0
-yDistance=0.0
+yDistance=80.0
 zDistance=0.0
 nExport=0
 z_value=3.834
@@ -93,12 +95,6 @@ print("y-axis is in initial position.")
 yreadout=PS10_GetPositionEx(yPS, nAxis)
 print( "Position=%.3f" %(yreadout) )
 
-
-"""
-#out.write(frame)
-#should be read by the stage
-                                              
-
 zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_value), 1)
 zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 while zstate > 0: 
@@ -109,18 +105,26 @@ zreadout=PS10_GetPositionEx(zPS, nAxis)
 print( "Position=%.3f" %(zreadout) )
 time.sleep(2)
 
+"""
+#out.write(frame)
+#should be read by the stage
+                                              
+
+
+
 ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(yDistance), 1)
 ystate = mydll.PS10_GetMoveState(yPS, nAxis)
 while(ystate > 0):
     #should be read by the stage
     yreadout=GetPositionEx(yPS, nAxis)
     print( "Position=%.3f" %(yreadout) )
+    global_cord = yreadout*1000.0
     # reads frames from a camera
     distances = video_feed.processed_objects
     if distances:
         for p in distances:
             converted = PixelCordToMicronCord(p)
-            y = yreadout+converted[0]
+            y = global_cord+converted[0]
             dist = converted[1]
             writer.writerow([y,dist])
     ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
