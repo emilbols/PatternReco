@@ -145,14 +145,14 @@ def select_lines(lines):
         for l in selected_lines_v1:
                 if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
                         selected_lines_v2.append(l)
-                elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550:
+                elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 650 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 950:
                         selected_lines_v2.append(l)
-        #elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 650 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 950:
+        #elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550:
         #        selected_lines_v2.append(l)
         return selected_lines_v2
 
 def process_image(color_image):
-	image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
         thres_image = cv2.GaussianBlur(thres_image,(9,9),0)
         kernel = np.ones((5, 5), np.uint8)
