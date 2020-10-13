@@ -174,6 +174,39 @@ def process_image(color_image):
                                 cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2,cv2.LINE_AA)
         return thres_edges, lines_img, thres_image, averaged_thres_lines, scanned_lines, distances
 
+def process_image_more_outputs(color_image):
+	image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
+        thres_image = cv2.GaussianBlur(thres_image,(9,9),0)
+        kernel = np.ones((5, 5), np.uint8)
+        thres_image = cv2.dilate(thres_image, kernel, 1000)
+        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,0,150,250,dilate=1)
+        scanned_lines = 0
+        distances = 0
+        #thres_edges = cv2.erode(thres_edges,kernel,1)
+        #averaged_thres_lines = average_over_nearby_lines(thres_lines)
+        selected_lines = select_lines(thres_lines)
+        averaged_thres_lines = average_over_nearby_lines(selected_lines)
+        selected_lines_img = deepcopy(color_image)
+        all_lines_img = deepcopy(color_image)
+        lines_img = deepcopy(color_image)
+        
+        if thres_lines:
+           for l in thres_lines:
+                   cv2.line(all_lines_img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
+        if selected_lines:
+                for l in selected_lines:
+                        cv2.line(selected_lines_img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
+        if averaged_thres_lines:
+           for l in averaged_thres_lines:
+                   cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
+        if(len(averaged_thres_lines) > 1):
+                scanned_lines,distances = distance_between_lines(averaged_thres_lines[0],averaged_thres_lines[1],vertical=True)
+                if scanned_lines:
+                        for l in scanned_lines:
+                                cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2,cv2.LINE_AA)
+        return thres_edges, lines_img, thres_image, averaged_thres_lines, scanned_lines, distances,all_lines_img,selected_lines_img
+
 
 def distance_between_points(x1,y1,x2,y2) :
         distance = np.sqrt( (y2-y1)**2 + (x2-x1)**2 )
