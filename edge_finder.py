@@ -176,7 +176,7 @@ def process_image(color_image):
 
 
 def process_image_more_outputs(color_image):
-	image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
         thres_image = cv2.GaussianBlur(thres_image,(9,9),0)
         kernel = np.ones((5, 5), np.uint8)
