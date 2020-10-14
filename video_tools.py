@@ -1,4 +1,5 @@
 import cv2
+from threading import Thread
 
 class VideoFeedHandler(object):
     def __init__(self, video_file_name, src, processing_function):

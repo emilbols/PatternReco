@@ -1,4 +1,3 @@
-
 import cv2
 from threading import Thread
 import numpy as np
@@ -97,7 +96,7 @@ class VideoFeedHandler(object):
 video_writer_widget1 = VideoFeedHandler('Camera_1', 0,process_image)
 
 time.sleep(3)
-for i in range(0,15):
+for i in range(0,50):
     print(video_writer_widget1.processed_objects)
     time.sleep(1)
     #print(i)

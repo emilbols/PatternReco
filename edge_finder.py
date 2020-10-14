@@ -145,7 +145,7 @@ def select_lines(lines):
         for l in selected_lines_v1:
                 if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
                         selected_lines_v2.append(l)
-                elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 650 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 950:
+                elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 700 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 870:
                         selected_lines_v2.append(l)
         #elif np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550:
         #        selected_lines_v2.append(l)
@@ -232,7 +232,7 @@ def distance_between_line_point(x0,y0,line) :
         return dist #(dist x,dist y)
 
 
-def distance_between_lines(line_1,line_2,npoints = 5,vertical=False):
+def distance_between_lines(line_1,line_2,npoints = 2,vertical=False):
         scanned_lines = []
         distances = []
         a1,b1 = get_coeff(line_1)

@@ -32,8 +32,8 @@ if test_video_only:
     
 csvfile = open('measurement.csv', 'w+')    
 writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-xComPort=3
-yComPort=5
+xComPort=6
+yComPort=3
 zComPort=4
 
 xPS = 1
@@ -42,10 +42,10 @@ zPS = 3
 nAxis=1
 nPosF=2500
 xDistance=0.0
-yDistance=80.0
+yDistance=0.0
 zDistance=0.0
 nExport=0
-z_value=3.834
+z_value=-0.3
 
 
 dll_name = "ps10.dll"
@@ -67,12 +67,25 @@ def setup_stage(dll_ref,PS,ComPort,speed,absolute):
 
 mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,0)
 mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,0)
-mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
+mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,0)
 
 GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
    
+zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_value), 1)
+zstate = mydll.PS10_GetMoveState(zPS, nAxis)
+while zstate > 0: 
+    zstate = mydll.PS10_GetMoveState(zPS, nAxis)
 
+xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(xDistance), 1)
+xstate = mydll.PS10_GetMoveState(xPS, nAxis)
+
+while(xstate > 0):
+    xreadout=GetPositionEx(xPS, nAxis)
+    print( "Position=%.3f" %(xreadout) )
+    # reads frames from a camera  
+    #should be read by the stage
+    xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 
 """
 #Initiliaze stages
