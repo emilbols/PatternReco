@@ -6,7 +6,8 @@ import glob
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import csv
-from edge_finder import edge_find, corner_find, line, xy_intersection, check_perpendicular, cv2HoughLines, average_over_nearby_lines, process_image, distance_between_lines, select_lines, select_line_pairs
+
+from edge_finder import edge_find, corner_find, line, xy_intersection, check_perpendicular, cv2HoughLines, average_over_nearby_lines, process_image, process_image_more_outputs, distance_between_lines, select_lines, select_line_pairs
 
 dir_name = 'images/measurement_correctSideSensorB/contours/'
 input_dir = 'images/measurement_correctSideSensorB/'
@@ -33,7 +34,9 @@ for filename in full_files:
     
     img = cv2.imread(the_file)
     #img = cv2.imread(the_file,0)
-    edges, lines_img, threshold, lines, scanned_lines, distances = process_image(img)
+
+    edges, lines_img, threshold, lines, scanned_lines, distances, all_lines_img,selected_lines_img = process_image_more_outputs(img)
+
     for p in distances:
         converted = PixelCordToMicronCord(p)
         y = global_cord+converted[0]
@@ -41,6 +44,8 @@ for filename in full_files:
         writer.writerow([y,dist])
     cv2.imwrite(output_name+'_threshold.jpg',threshold)
     cv2.imwrite(output_name+'_edges.jpg',edges)
+    cv2.imwrite(output_name+'_all_lines.jpg',all_lines_img)
+    cv2.imwrite(output_name+'_selected_lines.jpg',selected_lines_img)
     cv2.imwrite(output_name+'_lines.jpg',lines_img)
 
 ## Fin
