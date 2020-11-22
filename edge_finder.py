@@ -145,7 +145,7 @@ def select_lines(lines,n_edge=0):
         for l in selected_lines_v1:
                 if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
                         selected_lines_v2.append(l)
-                elif (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 650 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 950):
+                elif (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 700 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 870):
                         selected_lines_v2.append(l)
                 elif (n_edge==1 or n_edge==3) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550):
                         selected_lines_v2.append(l)
@@ -204,7 +204,6 @@ def process_corner(color_image):
                                 cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2,cv2.LINE_AA)
         return thres_edges, lines_img, averaged_thres_lines, scanned_lines, distances,all_lines_img,selected_lines_img
 
-
 def process_image_more_outputs(color_image):
         image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
@@ -239,9 +238,11 @@ def process_image_more_outputs(color_image):
         return thres_edges, lines_img, thres_image, averaged_thres_lines, scanned_lines, distances,all_lines_img,selected_lines_img
 
 
+
 def distance_between_points(x1,y1,x2,y2) :
         distance = np.sqrt( (y2-y1)**2 + (x2-x1)**2 )
         return distance ## absolute distance
+
 
 def select_line_pairs(lines):
         selected_lines = []
@@ -259,7 +260,8 @@ def distance_between_line_point(x0,y0,line) :
         ## shortest distance of a point to a line segment (s)
         return dist #(dist x,dist y)
 
-def distance_between_lines(line_1,line_2,npoints = 5,vertical=False):
+
+def distance_between_lines(line_1,line_2,npoints = 2,vertical=False):
         scanned_lines = []
         distances = []
         a1,b1 = get_coeff(line_1)

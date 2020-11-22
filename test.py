@@ -11,7 +11,6 @@ import os.path
 import numpy as np
 from threading import Thread
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
-from video_tools import VideoFeedHandler
 import csv
 
 def PixelCordToMicronCord(p):
@@ -21,6 +20,90 @@ def PixelCordToMicronCord(p):
     return converted
                 
 
+class VideoFeedHandler(object):
+    def __init__(self, video_file_name, src, processing_function):
+        # Create a VideoCapture object
+        self.frame = 0
+        self.processed_frame = 0
+        self.processed_objects = 0
+        self.frame_name = 'cam_output'+str(src)
+        self.processing_function = processing_function
+        self.video_file = video_file_name
+        self.video_file_name = video_file_name + '.avi'
+        self.capture = cv2.VideoCapture(src)
+        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
+        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
+
+        # Default resolutions of the frame are obtained (system dependent)
+        #self.frame_width = int(self.capture.get(3))
+        #print(self.frame_width)
+        #self.frame_height = int(self.capture.get(4))
+        #print(self.frame_height)
+        self.frame_width = 1024
+        print(self.frame_width)
+        self.frame_height = 1024
+        print(self.frame_height) 
+        # Set up codec and output video settings
+        #self.codec = cv2.VideoWriter_fourcc('M','J','P','G')
+        #self.output_video = cv2.VideoWriter(self.video_file_name, self.codec, 30, (self.frame_width, self.frame_height))
+
+        # Start the thread to read frames from the video stream
+        self.thread = Thread(target=self.update, args=())
+        self.thread.daemon = True
+        self.thread.start()
+
+        # Start another thread to show/save frames
+        self.start_recording()
+        print('initialized {}'.format(self.video_file))
+
+    def update(self):
+        # Read the next frame from the stream in a different thread
+        while True:
+            if self.capture.isOpened():
+                (self.status, self.frame) = self.capture.read()
+
+
+    def show_frame(self):
+        # Display frames in main program
+        if self.status:
+            cv2.namedWindow(self.frame_name,cv2.WINDOW_NORMAL)
+            cv2.imshow(self.frame_name, self.frame)
+            cv2.resizeWindow(self.frame_name, self.frame_width,self.frame_height)
+            
+        # Press Q on keyboard to stop recording
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            self.capture.release()
+            self.output_video.release()
+            cv2.destroyAllWindows()
+            exit(1)
+
+    def show_processed_frame(self):
+        # Display frames in main program
+        if True:
+            processed_frame, lines_img, _, _, _, distances = self.processing_function(self.frame)
+            cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
+            cv2.imshow("processed_frame", lines_img)
+            cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)
+            self.processed_objects = distances
+            
+    def save_frame(self):
+        # Save obtained frame into video output file
+        self.output_video.write(self.frame)
+
+    def start_recording(self):
+        # Create another thread to show/save frames
+        def start_recording_thread():
+            while True:
+                try:
+                    self.show_frame()
+                    self.show_processed_frame()
+                    #self.save_frame()
+                except AttributeError:
+                    pass
+        self.recording_thread = Thread(target=start_recording_thread, args=())
+        self.recording_thread.daemon = True
+        self.recording_thread.start()
 
 video_feed = VideoFeedHandler('Camera_1', 0, process_image)
 test_video_only = False
@@ -30,10 +113,10 @@ if test_video_only:
     quit()
 
     
-csvfile = open('measurement.csv', 'w+')    
+csvfile = open('measurementA.csv', 'w+')
 writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-xComPort=6
-yComPort=3
+xComPort=3
+yComPort=5
 zComPort=4
 
 xPS = 1
@@ -42,10 +125,10 @@ zPS = 3
 nAxis=1
 nPosF=2500
 xDistance=0.0
-yDistance=0.0
+yDistance=80.0
 zDistance=0.0
 nExport=0
-z_value=-0.3
+z_value=3.834
 
 
 dll_name = "ps10.dll"
@@ -53,8 +136,6 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # load library
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
-
-output_dir = 'images_used/'
 
 def setup_stage(dll_ref,PS,ComPort,speed,absolute):
     stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
@@ -67,34 +148,14 @@ def setup_stage(dll_ref,PS,ComPort,speed,absolute):
 
 
 
-
-mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,1)
-mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,1)
+mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,0)
+mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,0)
 mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
-
 
 GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
+   
 
-nom_height = 5.0
-steps = 5
-y_dim = 94.183
-x_dim = 102.7
-
-edge1_positions = [(0,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
-edge2_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(0,x_dim,steps)]
-edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
-edge4_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,0,steps)]
-
-edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-
-
-while(xstate > 0):
-    xreadout=GetPositionEx(xPS, nAxis)
-    print( "Position=%.3f" %(xreadout) )
-    # reads frames from a camera  
-    #should be read by the stage
-    xstate = mydll.PS10_GetMoveState(xPS, nAxis)
 
 """
 #Initiliaze stages
@@ -131,49 +192,27 @@ time.sleep(2)
 #out.write(frame)
 #should be read by the stage
                                               
-edge_count = 0
-for edge in edges:
-    for cord in edge:
-        x = cord[0]
-        y = cord[1]
-        z = cord[2]
-        xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(x), 1)
-        xstate = mydll.PS10_GetMoveState(xPS, nAxis)
-        ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(y), 1)
-        ystate = mydll.PS10_GetMoveState(yPS, nAxis)
-        zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z), 1)
-        zstate = mydll.PS10_GetMoveState(zPS, nAxis)
-        while(ystate+xstate+zstate > 0):
-            xreadout=GetPositionEx(xPS, nAxis)
-            yreadout=GetPositionEx(yPS, nAxis)
-            zreadout=GetPositionEx(zPS, nAxis)
-            print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
-            xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
-            ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
-            zstate = mydll.PS10_GetMoveState(zPS, nAxis) 
-        #measure for 10 seconds
-        t0 = time.time()
-        t1 = time.time()
-        while(t1-t0 < 10.0):
-            #should be read by the stage
-            xreadout=GetPositionEx(xPS, nAxis)
-            yreadout=GetPositionEx(yPS, nAxis)
-            zreadout=GetPositionEx(zPS, nAxis)
-            if (edge_count==0) or (edge_count==2):
-                global_cord = yreadout*1000.0
-            else:
-                global_cord = xreadout*1000.0
-            # reads frames from a camera
-            cv2.imwrite(output_dir+'edge'+str(edge_count)+'_x_'+str(xreadout)+'_y_'+str(yreadout)+'.jpg',video_feed.frame)
-            distances = video_feed.processed_objects
-            if distances:
-                for p in distances:
-                    converted = PixelCordToMicronCord(p)
-                    y = global_cord+converted[0]
-                    dist = converted[1]
-                    writer.writerow([x,y,z,dist])
-            t1 = time.time()
-    edge_count = edge_count + 1
+
+
+
+ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(yDistance), 1)
+ystate = mydll.PS10_GetMoveState(yPS, nAxis)
+while(ystate > 0):
+    #should be read by the stage
+    yreadout=GetPositionEx(yPS, nAxis)
+    print( "Position=%.3f" %(yreadout) )
+    global_cord = yreadout*1000.0
+    # reads frames from a camera
+    distances = video_feed.processed_objects
+    if distances:
+        for p in distances:
+            converted = PixelCordToMicronCord(p)
+            y = global_cord+converted[0]
+            dist = converted[1]
+            writer.writerow([y,dist])
+    ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
+
+
 """
 xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(xDistance), 1)
 xstate = mydll.PS10_GetMoveState(xPS, nAxis)

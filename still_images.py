@@ -6,6 +6,7 @@ import glob
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import csv
+
 from edge_finder import edge_find, corner_find, line, xy_intersection, check_perpendicular, cv2HoughLines, average_over_nearby_lines, process_image, process_image_more_outputs, distance_between_lines, select_lines, select_line_pairs
 
 dir_name = 'images/measurement_correctSideSensorB/contours/'
@@ -33,7 +34,9 @@ for filename in full_files:
     
     img = cv2.imread(the_file)
     #img = cv2.imread(the_file,0)
+
     edges, lines_img, threshold, lines, scanned_lines, distances, all_lines_img,selected_lines_img = process_image_more_outputs(img)
+
     for p in distances:
         converted = PixelCordToMicronCord(p)
         y = global_cord+converted[0]
