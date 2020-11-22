@@ -89,13 +89,6 @@ edge4_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,0
 edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
 
 
-while(xstate > 0):
-    xreadout=GetPositionEx(xPS, nAxis)
-    print( "Position=%.3f" %(xreadout) )
-    # reads frames from a camera  
-    #should be read by the stage
-    xstate = mydll.PS10_GetMoveState(xPS, nAxis)
-
 """
 #Initiliaze stages
 xstage = mydll.PS10_GoRef(xPS, nAxis, 4)
