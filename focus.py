@@ -5,9 +5,9 @@ import cv2
 
 # np is an alias pointing to numpy library
 import numpy as np
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
+from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines,process_image
 # capture frames from a camera
-cap = cv2.VideoCapture('videos/focus.mp4')
+cap = cv2.VideoCapture('videos/Side1_bottom.avi')
 
 
 # loop runs if capturing has been initialized
@@ -27,11 +27,11 @@ while(test):
     # Display an original image
     line_copy = frame.copy()
     # finds edges,countours, and hough lines in the input image image
-    edges,cnts,lines = edge_find(frame)
+    thres_edges, lines_img, thres_image, lines, scanned_lines, distances = process_image(frame)
     
     cv2.namedWindow('Original',cv2.WINDOW_NORMAL)
     cv2.imshow('Original',frame) 
-    cv2.resizeWindow('Original', 900,500)
+    cv2.resizeWindow('Original', 1200,1000)
 
     # Display edges in a frame
     if lines is not None:
@@ -39,7 +39,7 @@ while(test):
             cv2.line(line_copy,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
     cv2.namedWindow('Edges',cv2.WINDOW_NORMAL)    
     cv2.imshow('Edges',line_copy)
-    cv2.resizeWindow('Edges', 900,500)
+    cv2.resizeWindow('Edges', 1200,1000)
     key = cv2.waitKey(1) 
     if key == ('c'):
         break

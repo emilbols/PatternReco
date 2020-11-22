@@ -1,8 +1,10 @@
 import cv2
+from threading import Thread
 
 class VideoFeedHandler(object):
     def __init__(self, video_file_name, src, processing_function):
         # Create a VideoCapture object
+        self.n_edge = 0
         self.frame = 0
         self.processed_frame = 0
         self.processed_objects = 0
@@ -13,6 +15,7 @@ class VideoFeedHandler(object):
         self.capture = cv2.VideoCapture(src)
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
+        self.capture.set(cv2.CAP_PROP_FPS,5);
 
         # Default resolutions of the frame are obtained (system dependent)
         #self.frame_width = int(self.capture.get(3))
@@ -61,7 +64,15 @@ class VideoFeedHandler(object):
     def show_processed_frame(self):
         # Display frames in main program
         if True:
-            processed_frame, lines_img, _, _, _, distances = self.processing_function(self.frame)
+            if self.n_edge == 0:
+                input_img = self.frame
+            if self.n_edge == 1:
+                input_img = cv2.rotate(self.frame,cv2.ROTATE_90_CLOCKWISE)
+            if self.n_edge == 2:
+                input_img = cv2.rotate(self.frame,cv2.ROTATE_180)
+            if self.n_edge == 3:
+                input_img = cv2.rotate(self.frame,cv2.ROTATE_90_COUNTERCLOCKWISE)
+            processed_frame, lines_img, _, _, _, distances = self.processing_function(input_img,self.n_edge)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
             cv2.imshow("processed_frame", lines_img)
             cv2.resizeWindow("processed_frame", self.frame_width,self.frame_height)

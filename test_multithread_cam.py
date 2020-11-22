@@ -5,7 +5,8 @@ import numpy as np
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
 import time
 from copy import deepcopy
-
+from video_tools import VideoFeedHandler
+"""
 class VideoFeedHandler(object):
     def __init__(self, video_file_name, src, processing_function):
         # Create a VideoCapture object
@@ -92,13 +93,16 @@ class VideoFeedHandler(object):
         self.recording_thread = Thread(target=start_recording_thread, args=())
         self.recording_thread.daemon = True
         self.recording_thread.start()
-
+"""
 #src_file = 'videos/dummy_sensor_scan.avi'
 video_writer_widget1 = VideoFeedHandler('Camera_1', 0,process_image)
 
-time.sleep(3)
-for i in range(0,15):
-    print(video_writer_widget1.processed_objects)
-    time.sleep(1)
-    #print(i)
-  
+edge = 0
+for edge in range(0,4):
+    print(edge)
+    video_writer_widget1.n_edge = edge
+    t0 =time.time()
+    t1 = time.time()
+    while t1-t0 < 10.0:
+        t1 = time.time()
+    

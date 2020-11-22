@@ -54,6 +54,8 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
 
+output_dir = 'images_used/'
+
 def setup_stage(dll_ref,PS,ComPort,speed,absolute):
     stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
     stage=dll_ref.PS10_MotorInit(PS, 1)
@@ -65,13 +67,25 @@ def setup_stage(dll_ref,PS,ComPort,speed,absolute):
 
 
 
-mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,0)
-mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,0)
+mydll,xstage = setup_stage(mydll,xPS,xComPort,nPosF,1)
+mydll,ystage = setup_stage(mydll,yPS,yComPort,nPosF,1)
 mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
 
 GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
    
+nom_height = 5.0
+steps = 5
+y_dim = 94.183
+x_dim = 102.7
+
+edge1_positions = [(0,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
+edge2_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(0,x_dim,steps)]
+edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
+edge4_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,0,steps)]
+
+edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+
 
 
 """
@@ -109,27 +123,49 @@ time.sleep(2)
 #out.write(frame)
 #should be read by the stage
                                               
-
-
-
-ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(yDistance), 1)
-ystate = mydll.PS10_GetMoveState(yPS, nAxis)
-while(ystate > 0):
-    #should be read by the stage
-    yreadout=GetPositionEx(yPS, nAxis)
-    print( "Position=%.3f" %(yreadout) )
-    global_cord = yreadout*1000.0
-    # reads frames from a camera
-    distances = video_feed.processed_objects
-    if distances:
-        for p in distances:
-            converted = PixelCordToMicronCord(p)
-            y = global_cord+converted[0]
-            dist = converted[1]
-            writer.writerow([y,dist])
-    ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
-
-
+edge_count = 0
+for edge in edges:
+    for cord in edge:
+        x = cord[0]
+        y = cord[1]
+        z = cord[2]
+        xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(x), 1)
+        xstate = mydll.PS10_GetMoveState(xPS, nAxis)
+        ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(y), 1)
+        ystate = mydll.PS10_GetMoveState(yPS, nAxis)
+        zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z), 1)
+        zstate = mydll.PS10_GetMoveState(zPS, nAxis)
+        while(ystate+xstate+zstate > 0):
+            xreadout=GetPositionEx(xPS, nAxis)
+            yreadout=GetPositionEx(yPS, nAxis)
+            zreadout=GetPositionEx(zPS, nAxis)
+            print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
+            xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
+            ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
+            zstate = mydll.PS10_GetMoveState(zPS, nAxis) 
+        #measure for 10 seconds
+        t0 = time.time()
+        t1 = time.time()
+        while(t1-t0 < 10.0):
+            #should be read by the stage
+            xreadout=GetPositionEx(xPS, nAxis)
+            yreadout=GetPositionEx(yPS, nAxis)
+            zreadout=GetPositionEx(zPS, nAxis)
+            if (edge_count==0) or (edge_count==2):
+                global_cord = yreadout*1000.0
+            else:
+                global_cord = xreadout*1000.0
+            # reads frames from a camera
+            cv2.imwrite(output_dir+'edge'+str(edge_count)+'_x_'+str(xreadout)+'_y_'+str(yreadout)+'.jpg',video_feed.frame)
+            distances = video_feed.processed_objects
+            if distances:
+                for p in distances:
+                    converted = PixelCordToMicronCord(p)
+                    y = global_cord+converted[0]
+                    dist = converted[1]
+                    writer.writerow([x,y,z,dist])
+            t1 = time.time()
+    edge_count = edge_count + 1
 """
 xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(xDistance), 1)
 xstate = mydll.PS10_GetMoveState(xPS, nAxis)
