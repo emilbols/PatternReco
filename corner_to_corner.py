@@ -82,10 +82,31 @@ steps = 4
 y_dim = 94.183
 x_dim = 102.7
 
+# Version 1: "zick-zack"
+#   
+#  --2----4----6----8-- top
+#
+#  --1----3----5----7-- bottom
+#
+
+edges = [(x_dim, round(y,1),nom_height-fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0,1,0]]
+
+"""
+# Version 2: first top, then bottom sensor
+#
+#  --1----2----3----4-- top
+#
+#  --8----7----6----5-- bottom
+#
+
 top_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
 bottom_positions = [(x_dim,round(y,1),nom_height-z_diff) for y in numpy.linspace(y_dim,0,steps)]
 
 edges = [ top_positions, bottom_positions ]
+"""
+
+
+
 
 
 """
