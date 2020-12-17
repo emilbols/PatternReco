@@ -89,7 +89,9 @@ x_dim = 102.7
 #  --1----3----5----7-- bottom
 #
 
-edges = [(x_dim, round(y,1),nom_height-fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
+path = [(x_dim, round(y,1),nom_height-fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
+
+edges = [ path ]
 
 """
 # Version 2: first top, then bottom sensor
