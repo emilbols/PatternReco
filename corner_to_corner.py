@@ -92,6 +92,9 @@ x_dim = 102.7
 
 path = [(x_dim, round(y,1),nom_height-fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
 
+## use array "corr" to correct possible sensor bending in z direction (example values):
+# path = [(x_dim, round(y,1),nom_height-fac*z_diff+corr) for y, corr in zip(numpy.linspace(0,y_dim,steps),[0.05,0.00,-0.05,-0.1,-0.1]) for fac in [1,0]]
+
 edges = [ path ]
 
 """
@@ -104,6 +107,11 @@ edges = [ path ]
 
 top_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
 bottom_positions = [(x_dim,round(y,1),nom_height-z_diff) for y in numpy.linspace(y_dim,0,steps)]
+
+## use array "corr" to correct possible sensor bending in z direction (example values):
+# corr = [0.00, 0.02, 0.05, 0.07, 0.08]
+# top_positions = [(x_dim,round(y,1),nom_height+c) for y, c in zip(numpy.linspace(0,y_dim,steps), corr)]
+# bottom_positions = [(x_dim,round(y,1),nom_height-z_diff+c) for y, c in zip(numpy.linspace(y_dim,0,steps), reversed(corr))]
 
 edges = [ top_positions, bottom_positions ]
 """
