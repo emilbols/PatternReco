@@ -195,7 +195,7 @@ def process_image(color_image,n_edge):
         return thres_edges, lines_img, thres_image, averaged_thres_lines, scanned_lines, distances
 
 
-def process_corner(color_image):
+def process_corner(color_image,n_edge):
         image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         thres_edges, thres_cnts, thres_lines = edge_find(image,130,200,250,dilate=1)
         scanned_lines = 0
