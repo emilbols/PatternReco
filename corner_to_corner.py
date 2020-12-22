@@ -10,7 +10,7 @@ import sys, time
 import os.path
 import numpy as np
 from threading import Thread
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
+from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image, process_corner
 from video_tools import VideoFeedHandler
 import csv
 
@@ -22,7 +22,8 @@ def PixelCordToMicronCord(p):
                 
 
 
-video_feed = VideoFeedHandler('Camera_1', 0, process_image)
+#video_feed = VideoFeedHandler('Camera_1', 0, process_image)
+video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
 test_video_only = False
 
 if test_video_only:
