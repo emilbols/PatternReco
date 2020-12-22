@@ -151,6 +151,26 @@ def select_lines(lines,n_edge=0):
                         selected_lines_v2.append(l)
         return selected_lines_v2
 
+def select_corner_lines(lines,n_edge=0):
+        selected_lines_v1 = []
+        selected_lines_v2 = []
+        max_x = 0
+        max_l = 0
+        for l in lines:
+                dirx,diry = l.direction()
+                dot = np.abs(dirx * 1.0 + diry * 0.0)
+                if(dot < 0.3):
+                        selected_lines_v1.append(l)
+        for l in selected_lines_v1:
+                if (l.x1+l.x2)/2.0 > max_x:
+                        max_l = l
+                        max_x = (l.x1+l.x2)/2.0
+        for l in selected_lines_v1:
+                if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
+                        selected_lines_v2.append(l)
+        return selected_lines_v2
+
+
 def process_image(color_image,n_edge):
         image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
@@ -177,17 +197,16 @@ def process_image(color_image,n_edge):
 
 def process_corner(color_image):
         image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-        thres_edges, thres_cnts, thres_lines = edge_find(image,10,70,250,dilate=1)
+        thres_edges, thres_cnts, thres_lines = edge_find(image,130,200,250,dilate=1)
         scanned_lines = 0
         distances = 0
         #thres_edges = cv2.erode(thres_edges,kernel,1)
         #averaged_thres_lines = average_over_nearby_lines(thres_lines)
-        selected_lines = select_lines(thres_lines)
+        selected_lines = select_corner_lines(thres_lines)
         averaged_thres_lines = average_over_nearby_lines(selected_lines)
         selected_lines_img = deepcopy(color_image)
         all_lines_img = deepcopy(color_image)
         lines_img = deepcopy(color_image)
-        
         if thres_lines:
            for l in thres_lines:
                    cv2.line(all_lines_img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
@@ -197,13 +216,17 @@ def process_corner(color_image):
         if averaged_thres_lines:
            for l in averaged_thres_lines:
                    cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)
-        if(len(averaged_thres_lines) > 1):
-                scanned_lines,distances = distance_between_lines(averaged_thres_lines[0],averaged_thres_lines[1],vertical=True)
+        if(len(averaged_thres_lines) > 0):
+                scanned_lines = averaged_thres_lines
+                distances = []
+                for l in averaged_thres_lines:
+                         distances.append( ( (l.x1+l.x2)/2, (l.y1+l.y2)/2 ) )
                 if scanned_lines:
                         for l in scanned_lines:
                                 cv2.line(lines_img,(l.x1,l.y1),(l.x2,l.y2),(255,0,0),2,cv2.LINE_AA)
-        return thres_edges, lines_img, averaged_thres_lines, scanned_lines, distances,all_lines_img,selected_lines_img
+        return thres_edges, lines_img, all_lines_img, averaged_thres_lines, scanned_lines, distances
 
+#return thres_edges, lines_img, averaged_thres_lines, scanned_lines, distances, all_lines_img, selected_lines_img
 def process_image_more_outputs(color_image):
         image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
