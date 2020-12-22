@@ -60,10 +60,10 @@ class line:
 def get_coeff(line):
         # x = a*y+b
         if line.vertical:
-                a =  float(line.x2-line.x1)/float(line.y2-line.y1)
+                a =  float(line.x2-line.x1)/float(line.y2-line.y1+0.0001)
                 b = line.x1-a*line.y1
         else:
-                a =  float(line.y2-line.y1)/float(line.x2-line.x1)
+                a =  float(line.y2-line.y1)/float(line.x2-line.x1+0.0001)
                 b = line.y1-a*line.x1
         return a,b
 
@@ -145,9 +145,9 @@ def select_lines(lines,n_edge=0):
         for l in selected_lines_v1:
                 if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
                         selected_lines_v2.append(l)
-                elif (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 700 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 870):
+                elif (n_edge==1 or n_edge==3) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 700 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 870):
                         selected_lines_v2.append(l)
-                elif (n_edge==1 or n_edge==3) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550):
+                elif (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550):
                         selected_lines_v2.append(l)
         return selected_lines_v2
 
