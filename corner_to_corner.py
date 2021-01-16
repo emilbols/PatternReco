@@ -12,6 +12,7 @@ import numpy as np
 from threading import Thread
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image, process_corner
 from video_tools import VideoFeedHandler
+from focusing_algo import gaus, sharpness_calculation, z_fit, z_move, z_scan
 import csv
 
 def PixelCordToMicronCord(p):
@@ -83,7 +84,6 @@ steps = 4
 y_dim = 94.183
 x_dim = 102.7
 
-# Version 1: "zick-zack"
 #   
 #  --2----4----6----8-- top
 #
@@ -92,31 +92,7 @@ x_dim = 102.7
 
 path = [(x_dim, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
 
-## use array "corr" to correct possible sensor bending in z direction (example values):
-# path = [(x_dim, round(y,1),nom_height+fac*z_diff+corr) for y, corr in zip(numpy.linspace(0,y_dim,steps),[0.05,0.00,-0.05,-0.1,-0.1]) for fac in [1,0]]
-
 edges = [ path ]
-
-"""
-# Version 2: first top, then bottom sensor
-#
-#  --1----2----3----4-- top
-#
-#  --8----7----6----5-- bottom
-#
-
-top_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
-bottom_positions = [(x_dim,round(y,1),nom_height-z_diff) for y in numpy.linspace(y_dim,0,steps)]
-
-## use array "corr" to correct possible sensor bending in z direction (example values):
-# corr = [0.00, 0.02, 0.05, 0.07, 0.08]
-# top_positions = [(x_dim,round(y,1),nom_height+c) for y, c in zip(numpy.linspace(0,y_dim,steps), corr)]
-# bottom_positions = [(x_dim,round(y,1),nom_height-z_diff+c) for y, c in zip(numpy.linspace(y_dim,0,steps), reversed(corr))]
-
-edges = [ top_positions, bottom_positions ]
-"""
-
-
 
 
 
@@ -174,7 +150,15 @@ for edge in edges:
             print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
             xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
             ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
-            zstate = mydll.PS10_GetMoveState(zPS, nAxis) 
+            zstate = mydll.PS10_GetMoveState(zPS, nAxis)
+            #focusing z position
+            z_range = 0.2
+            z_steps = 0.002
+            z_focused = z_scan(z_range, z_steps)
+            zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_focused), 1)
+            zstate = mydll.PS10_GetMoveState(zPS, nAxis)
+            zreadout=GetPositionEx(zPS, nAxis)
+            print( "new z position after focusing: %.3f )" %(zreadout) )
         #measure for 10 seconds
         t0 = time.time()
         t1 = time.time()
@@ -185,7 +169,7 @@ for edge in edges:
             zreadout=GetPositionEx(zPS, nAxis)
             global_cord = yreadout*1000.0
             # reads frames from a camera
-            cv2.imwrite(output_dir+'edge'+str(edge_count)+'_x_'+str(xreadout)+'_y_'+str(yreadout)+'.jpg',video_feed.frame)
+            cv2.imwrite(output_dir+'edge'+str(edge_count)+'_x_'+str(xreadout)+'_y_'+str(yreadout)+'_z_'+str(zreadout)+'.jpg',video_feed.frame)
             distances = video_feed.processed_objects
             if distances:
                 for p in distances:
