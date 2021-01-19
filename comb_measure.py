@@ -16,14 +16,18 @@ from focusing_algo import gaus, sharpness_calculation, z_fit, z_move, z_scan
 import csv
 
 
-if sys.argv[1] == "corner":
+# measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
+measure_type = "corner"
+
+if measure_type == "corner":
     print("Performing corner to corner measurement")
     video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
-elif sys.argv[1] == "edges":
+elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
     video_feed = VideoFeedHandler('Camera_1', 0, process_image)
 else:
-    sys.exit("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
+    print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
+    exit()
 
 
 
@@ -89,26 +93,29 @@ GetPositionEx.restype = ctypes.c_double
 
 nom_height = 5.0
 z_diff = 1.8
-if sys.argv[1] == "corner":
+if measure_type == "corner":
     steps = 4
-if sys.argv[1] == "edges":
+if measure_type == "edges":
     steps = 5
 y_dim = 94.183
 x_dim = 102.7
 
 
 #### CORNER:
+#starting point: southeast corner top sensor
 #   
 #  --1----3----5----7-- top
 #
 #  --2----4----6----8-- bottom
 #
-if sys.argv[1] == "corner":
+if measure_type == "corner":
     path = [(x_dim, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
     edges = [ path ]
 
 #### EDGES:
-if sys.argv[1] == "edges":
+#starting point: southwest corner
+#path: SW -> SE -> NE -> NW
+if measure_type == "edges":
     edge1_positions = [(0,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
     edge2_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(0,x_dim,steps)]
     edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
@@ -157,9 +164,9 @@ for edge in edges:
             xreadout=GetPositionEx(xPS, nAxis)
             yreadout=GetPositionEx(yPS, nAxis)
             zreadout=GetPositionEx(zPS, nAxis)
-            if sys.argv[1] == "corner":
+            if measure_type == "corner":
                 global_cord = yreadout*1000.0
-            if sys.argv[1] == "edges":
+            if measure_type == "edges":
                 if (edge_count==0) or (edge_count==2):
                     global_cord = yreadout*1000.0
                 else:
