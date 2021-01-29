@@ -8,7 +8,7 @@ from ctypes import windll, c_double
 #from ctypes import windll, c_double, create_string_buffer
 import sys, time
 import os.path
-import numpy as np
+import numpy
 from threading import Thread
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image, process_corner
 from video_tools import VideoFeedHandler
@@ -47,9 +47,9 @@ if test_video_only:
     
 csvfile = open('measurement.csv', 'w+')    
 writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-xComPort=6
-yComPort=3
-zComPort=4
+xComPort=4
+yComPort=6
+zComPort=3
 
 xPS = 1
 yPS = 2
@@ -147,12 +147,15 @@ for edge in edges:
             xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
             ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
-            #focusing z position
-            print("starting z-focusing")
-            z_range = 0.2
-            z_steps = 0.002
-            z_focused = z_scan(z_range, z_steps)
-            zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_focused), 1)
+        #focusing z position
+        print("starting z-focusing")
+        z_range = 0.4
+        z_steps = 10
+        z_focused = z_scan(z_range, z_steps,video_feed)
+        print("z_focused: ", z_focused)
+        zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_focused), 1)
+        zstate = mydll.PS10_GetMoveState(zPS, nAxis)
+        while zstate > 0:
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
             zreadout=GetPositionEx(zPS, nAxis)
             print( "new z position after focusing: %.3f )" %(zreadout) )
