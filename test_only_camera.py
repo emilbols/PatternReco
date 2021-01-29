@@ -8,10 +8,10 @@ import numpy as np
 from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
 # capture frames from a camera
 #cap = cv2.VideoCapture('videos/edge_scan.mp4')
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
-#cap.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
-#cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
+cap.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
 cap.set(cv2.CAP_PROP_FPS,25);
 
 # loop runs if capturing has been initialized
@@ -27,7 +27,7 @@ while(test):
 
     cv2.imshow('Original',frame) 
     cv2.resizeWindow('Original', 1024,800)
-    cv2.imwrite('more_tricky_mask.jpg',frame)
+    cv2.imwrite('corner_4_hybrid_measurment_hybrid.png',frame)
     # Display edges in a frame
     #for l in lines:
       #  cv2.line(line_copy,(l.x1,l.x2),(l.x2,l.y2),(0,0,255),2,cv2.LINE_AA)

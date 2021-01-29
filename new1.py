@@ -21,7 +21,7 @@ duration = 1000  # Set Duration To 1000 ms == 1 second
 
 
 def video():
-    vc=cv2.VideoCapture(0)
+    vc=cv2.VideoCapture(1)
     vc.set(3,1280)
     vc.set(4,1024)
     time.sleep(2)
@@ -246,7 +246,7 @@ def tilt():
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
 	
 	
-vc=cv2.VideoCapture(0)
+vc=cv2.VideoCapture(1)
 vc.set(3,1280)
 vc.set(4,1024)
 time.sleep(2)

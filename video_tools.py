@@ -15,7 +15,7 @@ class VideoFeedHandler(object):
         self.capture = cv2.VideoCapture(src)
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);
-        self.capture.set(cv2.CAP_PROP_FPS,5);
+        self.capture.set(cv2.CAP_PROP_FPS,25);
 
         # Default resolutions of the frame are obtained (system dependent)
         #self.frame_width = int(self.capture.get(3))

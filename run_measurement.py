@@ -30,17 +30,17 @@ if test_video_only:
     quit()
 
     
-csvfile = open('measurement.csv', 'w+')    
+csvfile = open('measurement_sensor2019.csv', 'w+')    
 writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-xComPort=6
-yComPort=3
-zComPort=4
+xComPort=4
+yComPort=6
+zComPort=3
 
 xPS = 1
 yPS = 2
 zPS = 3
 nAxis=1
-nPosF=2500
+nPosF=10000
 xDistance=0.0
 yDistance=0.0
 zDistance=0.0
@@ -54,7 +54,7 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
 
-output_dir = 'images_used/'
+output_dir = 'images_sensor2020/'
 
 def setup_stage(dll_ref,PS,ComPort,speed,absolute):
     stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
@@ -76,17 +76,41 @@ mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
 GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
-nom_height = 5.0
+height1 = 8.32
+height2 = 8.32
+nom_height = 8.27
 steps = 5
-y_dim = 94.183
-x_dim = 102.7
+y_dim = 92.8 # 94.183
+x_dim = 101.2 # 102.7
 
-edge1_positions = [(0,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
-edge2_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(0,x_dim,steps)]
-edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
-edge4_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,0,steps)]
+edge1_positions = [[0,round(y,1),nom_height] for y in np.linspace(0,y_dim,steps)]
+edge2_positions = [[round(x,1),y_dim,nom_height+1.4] for x in np.linspace(0,x_dim,steps)]
+edge3_positions = [[x_dim,round(y,1),nom_height+1.1] for y in np.linspace(y_dim,0,steps)]
+edge4_positions = [[round(x,1),0,nom_height-0.35] for x in np.linspace(x_dim,0,steps)]
 
-edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+edge1_positions[1][2]=nom_height+0.35-0.15
+edge1_positions[2][2]=nom_height+0.35*2-0.15
+edge1_positions[3][2]=nom_height+0.35*3-0.05
+edge1_positions[4][2]=nom_height+1.4
+
+edge2_positions[1][2]=nom_height+1.3
+edge2_positions[2][2]=nom_height+1.15
+edge2_positions[3][2]=nom_height+1.05
+edge2_positions[4][2]=nom_height+1.1
+
+edge3_positions[1][2]=nom_height+0.35*3-0.35
+edge3_positions[2][2]=nom_height+0.35*2-0.45
+edge3_positions[3][2]=nom_height+0.35-0.5
+edge3_positions[4][2]=nom_height-0.35
+
+edge4_positions[1][2]=nom_height-0.4
+edge4_positions[2][2]=nom_height-0.4
+edge4_positions[3][2]=nom_height-0.2
+edge4_positions[4][2]=nom_height
+edge4_positions[4][2]=nom_height
+
+#edge1_positions,
+edges = [edge1_positions,edge2_positions, edge3_positions, edge4_positions ]
 
 
 """
@@ -125,7 +149,9 @@ time.sleep(2)
 #should be read by the stage
                                               
 edge_count = 0
+#edge_count = 3
 for edge in edges:
+    video_feed.n_edge = edge_count
     for cord in edge:
         x = cord[0]
         y = cord[1]
@@ -147,7 +173,7 @@ for edge in edges:
         #measure for 10 seconds
         t0 = time.time()
         t1 = time.time()
-        while(t1-t0 < 10.0):
+        while(t1-t0 < 5.0):
             #should be read by the stage
             xreadout=GetPositionEx(xPS, nAxis)
             yreadout=GetPositionEx(yPS, nAxis)

@@ -2,3 +2,9 @@
 *.py.save
 *.pyc
 *.dll
+*.png
+*.pdf
+*.jpg
+*.csv
+*.txt
+*.zip
