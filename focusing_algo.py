@@ -35,20 +35,23 @@ def sharpness_calculation(video_feed,s):
         med_val=np.median(img)
         lower=int(max(0 ,0.7*med_val))
         upper=int(min(255,1.3*med_val))
-        cv2.imwrite("testbeforeCanny_"+str(s)+".png",img)
+        out_dir = "test_pics"
+        cv2.imwrite(out_dir+"/testbeforeCanny_"+str(s)+".png",img)
         img=cv2.Canny(img_s,lower,upper)
         SumOverPixels=img[0:img.shape[0],0:img.shape[1]]
         SumOverPixels=cv2.sumElems(SumOverPixels)
         sharpness=sharpness+SumOverPixels[0]
-        cv2.imwrite("test"+str(sharpness)+".png",img)
+        cv2.imwrite(out_dir+"/test"+str(sharpness)+".png",img)
     sharpness=sharpness/numberOfAverage
     return sharpness
 
 def z_fit(x,y):
     x=np.array(x)
-    y=np.array(y)
-    y=y/max(y)
+    y=np.array(y)    
+    print("ymax: ", max(y))
     print("y: ", y)
+    y=y/max(y)
+    print("y_norm: ", y)
     n = len(y)
     mean = x[np.argmax(y)]
     sigma = 65/1000.0
@@ -65,7 +68,9 @@ def z_fit(x,y):
     plt.xlabel('Z (um)')
     plt.ylabel('Sharpness')
     #plt.show()
-    plt.savefig('z_fit_mean_'+str(popt[1])+'.pdf')
+    out_dir = "test_pics"
+    plt.savefig(out_dir+'/z_fit_mean_'+str(popt[1])+'.pdf')
+    plt.clf()
     return correctedPosition
 
 def z_move(zSteps):

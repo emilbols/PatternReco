@@ -17,14 +17,14 @@ import csv
 
 
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
-measure_type = "corner"
+measure_type = "edges"
 
 if measure_type == "corner":
     print("Performing corner to corner measurement")
-    video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_corner)
 elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
-    video_feed = VideoFeedHandler('Camera_1', 0, process_image)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_image)
 else:
     print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
     exit()
@@ -55,7 +55,7 @@ xPS = 1
 yPS = 2
 zPS = 3
 nAxis=1
-nPosF=2500
+nPosF=5000
 xDistance=0.0
 yDistance=0.0
 zDistance=0.0
@@ -91,14 +91,17 @@ mydll,zstage = setup_stage(mydll,zPS,zComPort,nPosF,1)
 GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
-nom_height = 5.0
+
+nom_height = 9.4
 z_diff = 1.8
 if measure_type == "corner":
     steps = 4
 if measure_type == "edges":
     steps = 5
-y_dim = 94.183
-x_dim = 102.7
+y_dim = 93.5
+x_dim = 92.0
+x_start = 16.0
+y_start = 1.0
 
 
 #### CORNER:
@@ -116,23 +119,27 @@ if measure_type == "corner":
 #starting point: southwest corner
 #path: SW -> SE -> NE -> NW
 if measure_type == "edges":
-    edge1_positions = [(0,round(y,1),nom_height) for y in numpy.linspace(0,y_dim,steps)]
-    edge2_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(0,x_dim,steps)]
-    edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
-    edge4_positions = [(round(x,1),0,nom_height) for x in numpy.linspace(x_dim,0,steps)]
+    edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
+    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
+    #edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
+    #edge4_positions = [(round(x,1),0,nom_height) for x in numpy.linspace(x_dim,0,steps)]
 
-    edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-
-
+    #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+    edges = [ edge1_positions, edge2_positions ]
 #out.write(frame)
 #should be read by the stage
                                               
 edge_count = 0
 for edge in edges:
+    cord_count = 0
     for cord in edge:
         x = cord[0]
         y = cord[1]
-        z = cord[2]
+        if cord_count == 0:
+            z_focused = cord[2]
+            z = cord[2]
+        else:
+            z = z_focused
         xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(x), 1)
         xstate = mydll.PS10_GetMoveState(xPS, nAxis)
         ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(y), 1)
@@ -149,9 +156,14 @@ for edge in edges:
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
         #focusing z position
         print("starting z-focusing")
-        z_range = 0.4
+        z_range = 0.5
         z_steps = 10
-        z_focused = z_scan(z_range, z_steps,video_feed)
+        current_sharpness = sharpness_calculation(video_feed, 0)
+        if current_sharpness < 165000000:
+            z_focused = z_scan(z_range, z_steps,video_feed)
+        else:
+            z_focus = z
+        cord_count += 1
         print("z_focused: ", z_focused)
         zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_focused), 1)
         zstate = mydll.PS10_GetMoveState(zPS, nAxis)
