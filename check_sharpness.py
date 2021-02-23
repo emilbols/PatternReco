@@ -15,6 +15,9 @@ from video_tools import VideoFeedHandler
 from focusing_algo import gaus, sharpness_calculation, z_fit, z_move, z_scan
 import csv
 
+# time stamp of measurement
+time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
+print("time stamp of measurement: ", time_measure)
 
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
 measure_type = "edges"
@@ -45,8 +48,7 @@ if test_video_only:
     quit()
 
     
-csvfile = open('sharpness_check.csv', 'w+')    
-writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
 xComPort=4
 yComPort=6
 zComPort=3
@@ -92,16 +94,16 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 9.4
+nom_height = 1.4
 z_diff = 1.8
 if measure_type == "corner":
     steps = 4
 if measure_type == "edges":
     steps = 5
 y_dim = 93.5
-x_dim = 92.0
-x_start = 16.0
-y_start = 1.0
+x_dim = 102.0
+x_start = 0.0
+y_start = 0.0
 
 
 #### CORNER:
@@ -120,12 +122,13 @@ if measure_type == "corner":
 #path: SW -> SE -> NE -> NW
 if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
-    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
+    #edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
     #edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
     #edge4_positions = [(round(x,1),0,nom_height) for x in numpy.linspace(x_dim,0,steps)]
 
     #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-    edges = [ edge1_positions, edge2_positions ]
+    #edges = [ edge1_positions, edge2_positions ]
+    edges = [ edge1_positions ]
 #out.write(frame)
 #should be read by the stage
                                               
@@ -178,15 +181,25 @@ for edge in edges:
                     converted = PixelCordToMicronCord(p)
                     y = global_cord+converted[0]
                     dist = converted[1]
-                    writer.writerow([x,y,z,dist, current_sharpness])
+                    with open("csv_measurements/measurement_sharpness_"+str(time_measure)+".csv", 'a+', newline='') as csvfile:
+                        writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                        writer.writerow([x,y,z,dist])
             t1 = time.time()
-        writer.writerow([x,y,z,current_sharpness])
+        with open("sharpness/sharpness_"+str(time_measure)+".csv", 'a+', newline='') as csvfile_sharp:
+            writer_sharp = csv.writer(csvfile_sharp, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer_sharp.writerow([x,y,z,current_sharpness])
     edge_count = edge_count + 1
     sharpness_all_edges.append(sharpness_edge)
-    print("Sharpness of the edge: ", sharpness_edge)
-    print("Maximum sharpness: ", max(sharpness_edge))
-    print("Minimum sharpness: ", min(sharpness_edge))    
+    #print("Sharpness of the edge: ", sharpness_edge)
+    #print("Maximum sharpness: ", max(sharpness_edge))
+    #print("Minimum sharpness: ", min(sharpness_edge))    
 print("Sharpness of all edges: ", sharpness_all_edges)
+for sharp_edge in sharpness_all_edges:
+    counter = 0
+    print("Maximum sharpness of edge ",counter,": ", max(sharp_edge))
+    counter += 1
+
+
 
 # close interface
 closingx=mydll.PS10_Disconnect(xPS)

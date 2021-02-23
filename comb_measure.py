@@ -15,6 +15,9 @@ from video_tools import VideoFeedHandler
 from focusing_algo import gaus, sharpness_calculation, z_fit, z_move, z_scan
 import csv
 
+# time stamp of measurement
+time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
+print("time stamp of measurement: ", time_measure)
 
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
 measure_type = "edges"
@@ -45,8 +48,6 @@ if test_video_only:
     quit()
 
     
-csvfile = open('measurement.csv', 'w+')    
-writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 xComPort=4
 yComPort=6
 zComPort=3
@@ -194,7 +195,9 @@ for edge in edges:
                     converted = PixelCordToMicronCord(p)
                     y = global_cord+converted[0]
                     dist = converted[1]
-                    writer.writerow([x,y,z,dist])
+                    with open("csv_measurements/measurement_"+str(measure_type)+"_"+str(time_measure)+".csv", 'a+', newline='') as csvfile:
+                        writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                        writer.writerow([x,y,z,dist])
             t1 = time.time()
     edge_count = edge_count + 1
 
