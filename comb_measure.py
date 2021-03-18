@@ -19,6 +19,9 @@ import csv
 time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
 print("time stamp of measurement: ", time_measure)
 
+# sharpness threshold for using auto focusing, to be obtained from sharpness check program:
+sharp_thres = 165000000
+
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
 measure_type = "edges"
 
@@ -160,7 +163,7 @@ for edge in edges:
         z_range = 0.5
         z_steps = 10
         current_sharpness = sharpness_calculation(video_feed, 0)
-        if current_sharpness < 165000000:
+        if current_sharpness < sharp_thres:
             z_focused = z_scan(z_range, z_steps,video_feed)
         else:
             z_focus = z
