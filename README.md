@@ -10,6 +10,10 @@ still_images.py runs this functions on still images, which we can use to optimiz
 
 real_time.py runs on a video feed, or on a video file.
 
+comb_measure.py runs the sensor measurements and moves the stages accordingly. Two measurement types exist: measuring all sensor edges, and distance measurement of top and bottom corner.
+
+focusing_algo.py is used to autofocus during a measurement.
+
 It then has two methods for extracting the edge coordinates. One method relies on finding contours with OpenCV, the other fits a line using a hough transform.
 
 # Dependencies
