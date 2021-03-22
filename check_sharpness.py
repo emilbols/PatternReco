@@ -10,7 +10,8 @@ import sys, time
 import os.path
 import numpy
 from threading import Thread
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image, process_corner
+from helpers import rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
+from edge_finder import edge_find, corner_find, process_edges, process_corner
 from video_tools import VideoFeedHandler
 from focusing_algo import gaus, sharpness_calculation, z_fit, z_move, z_scan
 import csv
@@ -27,7 +28,7 @@ if measure_type == "corner":
     video_feed = VideoFeedHandler('Camera_1', 1, process_corner)
 elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
-    video_feed = VideoFeedHandler('Camera_1', 1, process_image)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_edges)
 else:
     print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
     exit()

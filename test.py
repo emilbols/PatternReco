@@ -10,7 +10,9 @@ import sys, time
 import os.path
 import numpy as np
 from threading import Thread
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
+from helpers import rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
+from edge_finder import edge_find, corner_find
+from image_processing.py import process_image
 import csv
 
 def PixelCordToMicronCord(p):

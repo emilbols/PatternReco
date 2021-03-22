@@ -7,10 +7,11 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import csv
 
-from edge_finder import edge_find, corner_find, line, xy_intersection, check_perpendicular, cv2HoughLines, average_over_nearby_lines, process_image, process_image_more_outputs, distance_between_lines, select_lines, select_line_pairs
+from helpers import line, xy_intersection, check_perpendicular, average_over_nearby_lines, distance_between_lines, select_lines, select_line_pairs
+from edge_finder import edge_find, corner_find, cv2HoughLines, process_more_outputs
 
-dir_name = 'images/measurement_correctSideSensorB/contours/'
-input_dir = 'images/measurement_correctSideSensorB/'
+dir_name = '/home/denise/Documents/images_patternreco/contours2/'
+input_dir = '/home/denise/Documents/images_patternreco/'
 
 def PixelCordToMicronCord(p):
     x = -p[0]*1.14547537228
@@ -35,7 +36,7 @@ for filename in full_files:
     img = cv2.imread(the_file)
     #img = cv2.imread(the_file,0)
 
-    edges, lines_img, threshold, lines, scanned_lines, distances, all_lines_img,selected_lines_img = process_image_more_outputs(img)
+    edges, lines_img, threshold, lines, scanned_lines, distances, all_lines_img,selected_lines_img = process_more_outputs(img)
 
     for p in distances:
         converted = PixelCordToMicronCord(p)

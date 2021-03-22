@@ -14,6 +14,10 @@ comb_measure.py runs the sensor measurements and moves the stages accordingly. T
 
 focusing_algo.py is used to autofocus during a measurement.
 
+image_processing.py prepares the images for edge and corner detection.
+
+helpers.py contains small functions, e.g. for measuring the distance between lines, finding line intersections etc. 
+
 It then has two methods for extracting the edge coordinates. One method relies on finding contours with OpenCV, the other fits a line using a hough transform.
 
 # Dependencies

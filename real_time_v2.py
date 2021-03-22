@@ -6,7 +6,8 @@ import cv2
 
 # np is an alias pointing to numpy library
 import numpy as np
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find
+from helpers import rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
+from edge_finder import edge_find, corner_find
 # capture frames from a camera
 cap = cv2.VideoCapture('videos/videos_final_setup/dummy_sensor_scan.avi')
 #cap = cv2.VideoCapture(1)

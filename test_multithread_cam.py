@@ -1,7 +1,8 @@
 import cv2
 from threading import Thread
 import numpy as np
-from edge_finder import edge_find, rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines, corner_find, process_image
+from helpers import rho_theta_to_xy, select_lines,average_over_nearby_lines,distance_between_lines
+from edge_finder import edge_find, corner_find, process_edges
 import time
 from copy import deepcopy
 from video_tools import VideoFeedHandler
@@ -94,7 +95,7 @@ class VideoFeedHandler(object):
         self.recording_thread.start()
 """
 #src_file = 'videos/dummy_sensor_scan.avi'
-video_writer_widget1 = VideoFeedHandler('Camera_1', 0,process_image)
+video_writer_widget1 = VideoFeedHandler('Camera_1', 0,process_edges)
 
 edge = 0
 for edge in range(0,4):
