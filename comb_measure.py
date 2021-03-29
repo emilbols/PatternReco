@@ -21,7 +21,7 @@ time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
 print("time stamp of measurement: ", time_measure)
 
 # sharpness threshold for using auto focusing, to be obtained from sharpness check program:
-sharp_thres = 165000000
+sharp_thres = 350000000
 
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
 measure_type = "edges"
@@ -97,16 +97,16 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 9.4
+nom_height = 10.8
 z_diff = 1.8
 if measure_type == "corner":
     steps = 4
 if measure_type == "edges":
     steps = 5
 y_dim = 93.5
-x_dim = 92.0
-x_start = 16.0
-y_start = 1.0
+x_dim = 102.0
+x_start = 35.0
+y_start = 0.0
 
 
 #### CORNER:
@@ -121,16 +121,16 @@ if measure_type == "corner":
     edges = [ path ]
 
 #### EDGES:
-#starting point: southwest corner
-#path: SW -> SE -> NE -> NW
+#starting point: southeast corner
+#path: SE -> SW -> NW -> NE
 if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
-    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
+    #edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
     #edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
     #edge4_positions = [(round(x,1),0,nom_height) for x in numpy.linspace(x_dim,0,steps)]
 
     #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-    edges = [ edge1_positions, edge2_positions ]
+    edges = [ edge1_positions ]
 #out.write(frame)
 #should be read by the stage
                                               
@@ -160,11 +160,11 @@ for edge in edges:
             ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
         #focusing z position
-        print("starting z-focusing")
         z_range = 0.5
         z_steps = 10
         current_sharpness = sharpness_calculation(video_feed, 0)
         if current_sharpness < sharp_thres:
+            print("starting z-focusing")
             z_focused = z_scan(z_range, z_steps,video_feed)
         else:
             z_focus = z
