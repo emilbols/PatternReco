@@ -65,14 +65,14 @@ def process_corner(color_image,n_edge):
 
 
 #return thres_edges, lines_img, averaged_thres_lines, scanned_lines, distances, all_lines_img, selected_lines_img
-def process_more_outputs(color_image):
+def process_more_outputs(color_image,n_edge):
         thres_image = process_image(color_image,do_threshold=True)
-        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,0,150,250,dilate=1)
+        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,10,30,250,dilate=1)
         scanned_lines = 0
         distances = 0
         #thres_edges = cv2.erode(thres_edges,kernel,1)
         #averaged_thres_lines = average_over_nearby_lines(thres_lines)
-        selected_lines = select_lines(thres_lines)
+        selected_lines = select_lines(thres_lines,n_edge)
         averaged_thres_lines = average_over_nearby_lines(selected_lines)
         selected_lines_img = deepcopy(color_image)
         all_lines_img = deepcopy(color_image)
