@@ -13,7 +13,8 @@ from helpers import distance_between_lines, average_over_nearby_lines, select_li
 # for edges measurement
 def process_edges(color_image,n_edge):
         thres_image = process_image(color_image,do_threshold=True)
-        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,0,150,250,dilate=1)
+        #thres_edges, thres_cnts, thres_lines = edge_find(thres_image,0,150,250,dilate=1)
+        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,10,30,250,dilate=1)
         scanned_lines = 0
         distances = 0
         #thres_edges = cv2.erode(thres_edges,kernel,1)
