@@ -65,13 +65,13 @@ class VideoFeedHandler(object):
         # Display frames in main program
         if True:
             if self.n_edge == 0:
-                input_img = self.frame
-            if self.n_edge == 1:
-                input_img = cv2.rotate(self.frame,cv2.ROTATE_90_CLOCKWISE)
-            if self.n_edge == 2:
-                input_img = cv2.rotate(self.frame,cv2.ROTATE_180)
-            if self.n_edge == 3:
                 input_img = cv2.rotate(self.frame,cv2.ROTATE_90_COUNTERCLOCKWISE)
+            if self.n_edge == 1:
+                input_img = cv2.rotate(self.frame,cv2.ROTATE_180)
+            if self.n_edge == 2:
+                input_img = cv2.rotate(self.frame,cv2.ROTATE_90_CLOCKWISE)
+            if self.n_edge == 3:
+                input_img = self.frame
             processed_frame, lines_img, _, _, _, distances = self.processing_function(input_img,self.n_edge)
             cv2.namedWindow("processed_frame",cv2.WINDOW_NORMAL)
             cv2.imshow("processed_frame", lines_img)
