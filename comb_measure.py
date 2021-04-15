@@ -123,19 +123,20 @@ if measure_type == "corner":
 
 #### EDGES:
 #starting point: southeast corner
-#path: SE -> SW -> NW -> NE
+#path: SW -> SE -> NE -> NW
 if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
     edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
     edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)]
     edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)]
-    #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-    edges = [edge4_positions ]
+    edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+    #edges = [edge4_positions ]
 #out.write(frame)
 #should be read by the stage
                                               
-edge_count = 3
+edge_count = 0
 for edge in edges:
+    video_feed.n_edge = edge_count
     cord_count = 0
     for cord in edge:
         x = cord[0]
