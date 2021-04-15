@@ -124,11 +124,12 @@ if measure_type == "corner":
 #### EDGES:
 #starting point: southeast corner
 #path: SW -> SE -> NE -> NW
+#avoid duplicates with [1:] -> removing first element of edges 2-4
 if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
-    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
-    edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)]
-    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)]
+    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)[1:]]
+    edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)[1:]]
+    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)[1:]]
     edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
     #edges = [edge4_positions ]
 #out.write(frame)
@@ -141,9 +142,15 @@ for edge in edges:
     for cord in edge:
         x = cord[0]
         y = cord[1]
+        # first cord of first edge: use z-value of initialized array (cord[2])
+        # first cord of all following edges: use focused z-value from previous edge (z_focused)
+        # all other cords but the first cord: use focused z-value from previous cord (z_focused)
         if cord_count == 0:
-            z_focused = cord[2]
-            z = cord[2]
+            if edge_count == 0:
+                z_focused = cord[2]
+                z = cord[2]
+            else:
+                z = z_focused
         else:
             z = z_focused
         xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(x), 1)
