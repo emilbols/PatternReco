@@ -58,7 +58,12 @@ def z_fit(x,y):
     def gaus(y,a,mean,sigma):
         return a*np.exp(-(y-mean)**2/(2*sigma**2))
     #plt.plot(x,gaus(x,1,mean,sigma),'g',label='function')
-    popt,pcov = curve_fit(gaus,x,y,p0 = [1.,mean, sigma])#<<<<<<
+    try:
+        popt,pcov = curve_fit(gaus,x,y,p0 = [1.,mean, sigma])#<<<<<<
+    except RuntimeError:
+        print("Error - curve_fit failed")
+        correctedPosition = np.mean(x)
+        return correctedPosition
     correctedPosition=popt[1] #<<<<<<<<<<<<<
     print("Position: %3.3f Mean: %3.3f Diff: %3.3f " %(GetPositionEx(zPS, nAxis),popt[1] ,popt[1]-GetPositionEx(zPS, nAxis)))
     plt.plot(x,y,'b',label='data')

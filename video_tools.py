@@ -22,9 +22,9 @@ class VideoFeedHandler(object):
         #print(self.frame_width)
         #self.frame_height = int(self.capture.get(4))
         #print(self.frame_height)
-        self.frame_width = 1024
+        self.frame_width = 512
         print(self.frame_width)
-        self.frame_height = 1024
+        self.frame_height = 512
         print(self.frame_height) 
         # Set up codec and output video settings
         #self.codec = cv2.VideoWriter_fourcc('M','J','P','G')

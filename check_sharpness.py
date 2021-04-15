@@ -25,10 +25,10 @@ measure_type = "edges"
 
 if measure_type == "corner":
     print("Performing corner to corner measurement")
-    video_feed = VideoFeedHandler('Camera_1', 1, process_corner)
+    video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
 elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
-    video_feed = VideoFeedHandler('Camera_1', 1, process_edges)
+    video_feed = VideoFeedHandler('Camera_1', 0, process_edges)
 else:
     print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
     exit()
@@ -95,18 +95,18 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 1.4
+nom_height = 7.8
 z_diff = 1.8
 if measure_type == "corner":
     steps = 4
 if measure_type == "edges":
-    steps = 5
-y_dim = 93.5
-x_dim = 102.0
-x_start = 0.0
-y_start = 0.0
+    steps = 2
 
+x_start = 5.0
+y_start = 5.0
 
+y_dim = 93.5+y_start
+x_dim = 102.0+x_start
 #### CORNER:
 #starting point: southeast corner top sensor
 #   
@@ -123,13 +123,13 @@ if measure_type == "corner":
 #path: SW -> SE -> NE -> NW
 if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
-    #edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
-    #edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
-    #edge4_positions = [(round(x,1),0,nom_height) for x in numpy.linspace(x_dim,0,steps)]
+    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
+    edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)]
+    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)]
 
-    #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+    edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
     #edges = [ edge1_positions, edge2_positions ]
-    edges = [ edge1_positions ]
+    #edges = [ edge1_positions ]
 #out.write(frame)
 #should be read by the stage
                                               

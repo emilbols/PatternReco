@@ -21,17 +21,17 @@ time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
 print("time stamp of measurement: ", time_measure)
 
 # sharpness threshold for using auto focusing, to be obtained from sharpness check program:
-sharp_thres = 350000000
-
+#sharp_thres = 350000000
+sharp_thres = 150852645
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
 measure_type = "edges"
 
 if measure_type == "corner":
     print("Performing corner to corner measurement")
-    video_feed = VideoFeedHandler('Camera_1', 1, process_corner)
+    video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
 elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
-    video_feed = VideoFeedHandler('Camera_1', 1, process_edges)
+    video_feed = VideoFeedHandler('Camera_1', 0, process_edges)
 else:
     print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
     exit()
@@ -60,7 +60,7 @@ xPS = 1
 yPS = 2
 zPS = 3
 nAxis=1
-nPosF=5000
+nPosF=10000
 xDistance=0.0
 yDistance=0.0
 zDistance=0.0
@@ -74,7 +74,7 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
 
-output_dir = 'images_used/'
+output_dir = 'sensor036/'
 
 def setup_stage(dll_ref,PS,ComPort,speed,absolute):
     stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
@@ -97,17 +97,18 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 10.8
+nom_height = 7.3
 z_diff = 1.8
 if measure_type == "corner":
     steps = 4
 if measure_type == "edges":
     steps = 5
-y_dim = 93.5
-x_dim = 102.0
-x_start = 35.0
-y_start = 0.0
 
+x_start = 5.0
+y_start = 5.0
+
+y_dim = 93.0+y_start
+x_dim = 101.5+x_start
 
 #### CORNER:
 #starting point: southeast corner top sensor
@@ -125,16 +126,15 @@ if measure_type == "corner":
 #path: SE -> SW -> NW -> NE
 if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
-    #edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
-    #edge3_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_dim,0,steps)]
-    #edge4_positions = [(round(x,1),0,nom_height) for x in numpy.linspace(x_dim,0,steps)]
-
+    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
+    edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)]
+    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)]
     #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-    edges = [ edge1_positions ]
+    edges = [edge4_positions ]
 #out.write(frame)
 #should be read by the stage
                                               
-edge_count = 0
+edge_count = 3
 for edge in edges:
     cord_count = 0
     for cord in edge:
@@ -155,19 +155,19 @@ for edge in edges:
             xreadout=GetPositionEx(xPS, nAxis)
             yreadout=GetPositionEx(yPS, nAxis)
             zreadout=GetPositionEx(zPS, nAxis)
-            print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
+            #print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
             xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
             ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
         #focusing z position
-        z_range = 0.5
-        z_steps = 10
+        z_range = 1.0
+        z_steps = 15
         current_sharpness = sharpness_calculation(video_feed, 0)
         if current_sharpness < sharp_thres:
             print("starting z-focusing")
             z_focused = z_scan(z_range, z_steps,video_feed)
         else:
-            z_focus = z
+            z_focused = z
         cord_count += 1
         print("z_focused: ", z_focused)
         zstage=mydll.PS10_MoveEx(zPS, nAxis, c_double(z_focused), 1)
@@ -175,11 +175,11 @@ for edge in edges:
         while zstate > 0:
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
             zreadout=GetPositionEx(zPS, nAxis)
-            print( "new z position after focusing: %.3f )" %(zreadout) )
+            #print( "new z position after focusing: %.3f )" %(zreadout) )
         #measure for 10 seconds
         t0 = time.time()
         t1 = time.time()
-        while(t1-t0 < 10.0):
+        while(t1-t0 < 5.0):
             #should be read by the stage
             xreadout=GetPositionEx(xPS, nAxis)
             yreadout=GetPositionEx(yPS, nAxis)
