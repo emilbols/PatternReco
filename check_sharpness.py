@@ -58,7 +58,7 @@ xPS = 1
 yPS = 2
 zPS = 3
 nAxis=1
-nPosF=5000
+nPosF=10000
 xDistance=0.0
 yDistance=0.0
 zDistance=0.0
@@ -98,9 +98,9 @@ GetPositionEx.restype = ctypes.c_double
 nom_height = 7.8
 z_diff = 1.8
 if measure_type == "corner":
-    steps = 4
-if measure_type == "edges":
     steps = 2
+if measure_type == "edges":
+    steps = 1
 
 x_start = 5.0
 y_start = 5.0
@@ -120,15 +120,15 @@ if measure_type == "corner":
 
 #### EDGES:
 #starting point: southwest corner
-#path: SW -> SE -> NE -> NW
+#path: SE -> SW (-> NW -> NE)
 if measure_type == "edges":
-    edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
-    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)]    
-    edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)]
-    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)]
+    edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim/2,steps)]
+    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim/2,steps)]    
+    #edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim/2,x_start,steps)]
+    #edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim/2,y_start,steps)]
 
-    edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-    #edges = [ edge1_positions, edge2_positions ]
+    #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+    edges = [ edge1_positions, edge2_positions ]
     #edges = [ edge1_positions ]
 #out.write(frame)
 #should be read by the stage
@@ -136,6 +136,7 @@ if measure_type == "edges":
 edge_count = 0
 sharpness_all_edges = []
 for edge in edges:
+    video_feed.n_edge = edge_count
     sharpness_edge = []
     for cord in edge:
         x = cord[0]
@@ -151,7 +152,7 @@ for edge in edges:
             xreadout=GetPositionEx(xPS, nAxis)
             yreadout=GetPositionEx(yPS, nAxis)
             zreadout=GetPositionEx(zPS, nAxis)
-            print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
+            #print( "Position=( %.3f, %.3f , %.3f )" %(xreadout, yreadout, zreadout) )
             xstate = mydll.PS10_GetMoveState(xPS, nAxis) 
             ystate = mydll.PS10_GetMoveState(yPS, nAxis) 
             zstate = mydll.PS10_GetMoveState(zPS, nAxis)
@@ -162,7 +163,7 @@ for edge in edges:
         #measure for 10 seconds
         t0 = time.time()
         t1 = time.time()
-        while(t1-t0 < 10.0):
+        while(t1-t0 < 5.0):
             #should be read by the stage
             xreadout=GetPositionEx(xPS, nAxis)
             yreadout=GetPositionEx(yPS, nAxis)
