@@ -98,9 +98,9 @@ GetPositionEx.restype = ctypes.c_double
 nom_height = 7.8
 z_diff = 1.8
 if measure_type == "corner":
-    steps = 2
+    steps = 3
 if measure_type == "edges":
-    steps = 1
+    steps = 3
 
 x_start = 5.0
 y_start = 5.0
@@ -114,18 +114,20 @@ x_dim = 102.0+x_start
 #
 #  --2----4----6----8-- bottom
 #
+#[:-2] -> measure corners at begin and middle of edge (4 measurement points in total)
 if measure_type == "corner":
-    path = [(x_dim, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
+    path = [(x_dim, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]][:-2]
     edges = [ path ]
 
 #### EDGES:
 #starting point: southwest corner
 #path: SE -> SW (-> NW -> NE)
+#[1:2] -> only one sharpness check in the middle of the edge
 if measure_type == "edges":
-    edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim/2,steps)]
-    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim/2,steps)]    
-    #edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim/2,x_start,steps)]
-    #edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim/2,y_start,steps)]
+    edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)[1:2]]
+    edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)[1:2]]    
+    #edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)[1:2]]
+    #edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)[1:2]]
 
     #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
     edges = [ edge1_positions, edge2_positions ]
