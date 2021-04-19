@@ -129,7 +129,7 @@ if measure_type == "edges":
     edge1_positions = [(round(x,1),y_start,nom_height) for x in numpy.linspace(x_start,x_dim,steps)]
     edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)[1:]]
     edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)[1:]]
-    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)[1:]]
+    edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)[1:-1]]
     edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
     #edges = [edge4_positions ]
 #out.write(frame)
