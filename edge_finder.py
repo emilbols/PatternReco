@@ -6,13 +6,13 @@ import os
 from copy import deepcopy
 
 from image_processing import canny_image, process_image, floodfill_mask_image
-from helpers import distance_between_lines, average_over_nearby_lines, select_lines, select_corner_lines, find_intersections, line
+from helpers import distance_between_lines, average_over_nearby_lines, select_lines, select_corner_lines, find_intersections, line,select_inner_lines,select_outer_lines
 
 
 
 # for edges measurement
 def process_edges(color_image,n_edge):
-        thres_image = process_image(color_image,do_threshold=True)
+        thres_image = process_image(color_image,do_threshold=True,thres_val=90)
         #thres_edges, thres_cnts, thres_lines = edge_find(thres_image,0,150,250,dilate=1)
         thres_edges, thres_cnts, thres_lines = edge_find(thres_image,10,30,250,dilate=1)
         scanned_lines = 0
@@ -67,13 +67,31 @@ def process_corner(color_image,n_edge):
 
 #return thres_edges, lines_img, averaged_thres_lines, scanned_lines, distances, all_lines_img, selected_lines_img
 def process_more_outputs(color_image,n_edge):
-        thres_image = process_image(color_image,do_threshold=True)
-        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,10,30,250,dilate=1)
+        thres_image = process_image(color_image,do_threshold=True,thres_val=90)
+        med_val=np.median(thres_image)
+        lower=int(max(0 ,0.7*med_val))
+        upper=int(min(255,1.3*med_val))
+        #lower = 50
+        #upper = 100
+        thres_edges, thres_cnts, thres_lines = edge_find(thres_image,lower,upper,250,dilate=1)
         scanned_lines = 0
         distances = 0
         #thres_edges = cv2.erode(thres_edges,kernel,1)
         #averaged_thres_lines = average_over_nearby_lines(thres_lines)
-        selected_lines = select_lines(thres_lines,n_edge)
+        selected_outer_lines = select_outer_lines(thres_lines,n_edge)
+        
+
+        inner_thres_image = process_image(color_image,do_threshold=True,thres_val=130)
+        med_val=np.median(inner_thres_image)
+        lower=int(max(0 ,0.7*med_val))
+        upper=int(min(255,1.3*med_val))
+        #lower = 50
+        #upper = 100
+        inner_thres_edges, inner_thres_cnts, inner_thres_lines = edge_find(inner_thres_image,lower,upper,250,dilate=1)
+
+        selected_inner_lines = select_inner_lines(inner_thres_lines,thres_lines,n_edge)
+        
+        selected_lines = selected_inner_lines+selected_outer_lines
         averaged_thres_lines = average_over_nearby_lines(selected_lines)
         selected_lines_img = deepcopy(color_image)
         all_lines_img = deepcopy(color_image)

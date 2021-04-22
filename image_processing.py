@@ -3,11 +3,12 @@ import cv2
 from copy import deepcopy
 
 
-def process_image(color_image, do_threshold=True):
+def process_image(color_image, do_threshold=True,thres_val=90):
         #threshold needed for edges measurement, grayscale image sufficient for corner measurement
         if do_threshold:
                 image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-                cutoff, thres_image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
+                cutoff, thres_image = cv2.threshold(image, thres_val, 255, cv2.THRESH_BINARY)
+                #thres_image = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
                 thres_image = cv2.GaussianBlur(thres_image,(9,9),0)
                 kernel = np.ones((5, 5), np.uint8)
                 thres_image = cv2.dilate(thres_image, kernel, 1000)

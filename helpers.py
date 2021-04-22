@@ -148,11 +148,52 @@ def select_lines(lines,n_edge=0):
         for l in selected_lines_v1:
                 if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
                         selected_lines_v2.append(l)
-                elif (n_edge==1 or n_edge==3) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 700 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 870):
+                elif (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 770 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 810):
                         selected_lines_v2.append(l)
-                elif (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 450 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 550):
+                elif (n_edge==1 or n_edge==3) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 460 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 500):
                         selected_lines_v2.append(l)
         return selected_lines_v2
+
+def select_outer_lines(lines,n_edge=0):
+        selected_lines_v1 = []
+        selected_lines_v2 = []
+        max_x = 0
+        max_l = 0
+        for l in lines:
+                dirx,diry = l.direction()
+                dot = np.abs(dirx * 1.0 + diry * 0.0)
+                if(dot < 0.3):
+                        selected_lines_v1.append(l)
+        for l in selected_lines_v1:
+                if (l.x1+l.x2)/2.0 > max_x:
+                        max_l = l
+                        max_x = (l.x1+l.x2)/2.0
+        for l in selected_lines_v1:
+                if np.abs( (l.x1+l.x2)/2.0 - max_x ) < 5:
+                        selected_lines_v2.append(l)
+        return selected_lines_v2
+
+def select_inner_lines(lines,outer_lines,n_edge=0):
+        selected_lines_v1 = []
+        selected_lines_v2 = []
+        max_x = 0
+        max_l = 0
+        for l in lines:
+                dirx,diry = l.direction()
+                dot = np.abs(dirx * 1.0 + diry * 0.0)
+                if(dot < 0.3):
+                        selected_lines_v1.append(l)
+        for l in outer_lines:
+                if (l.x1+l.x2)/2.0 > max_x:
+                        max_l = l
+                        max_x = (l.x1+l.x2)/2.0
+        for l in selected_lines_v1:
+                if (n_edge==0 or n_edge==2) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 770 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 810):
+                        selected_lines_v2.append(l)
+                elif (n_edge==1 or n_edge==3) and (np.abs( (l.x1+l.x2)/2.0 - max_x ) > 460 and np.abs( (l.x1+l.x2)/2.0 - max_x ) < 500):
+                        selected_lines_v2.append(l)
+        return selected_lines_v2
+
 
 def select_corner_lines(lines,n_edge=0):
         selected_lines_v1 = []
