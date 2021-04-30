@@ -24,7 +24,7 @@ print("time stamp of measurement: ", time_measure)
 #sharp_thres = 350000000
 sharp_thres = 150852645
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
-measure_type = "edges"
+measure_type = "corner"
 
 if measure_type == "corner":
     print("Performing corner to corner measurement")
@@ -53,7 +53,7 @@ if test_video_only:
 
     
 xComPort=4
-yComPort=6
+yComPort=7
 zComPort=3
 
 xPS = 1
@@ -74,7 +74,7 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
 
-output_dir = 'sensor036/'
+output_dir = 'fm2_module/'
 
 def setup_stage(dll_ref,PS,ComPort,speed,absolute):
     stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
@@ -97,14 +97,14 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 7.3
-z_diff = 1.8
+nom_height = 4.440
+z_diff = 1.7
 if measure_type == "corner":
     steps = 4
 if measure_type == "edges":
     steps = 5
 
-x_start = 5.0
+x_start = 4.0
 y_start = 5.0
 
 y_dim = 93.0+y_start
