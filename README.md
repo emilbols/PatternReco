@@ -16,6 +16,10 @@ focusing_algo.py is used to autofocus during a measurement.
 
 image_processing.py prepares the images for edge and corner detection.
 
+check_sharpness.py analyzes the sharpness of the sensor images and is required to run the z focusing in the actual measurement.
+
+check_corners.py checks if all four corners of the sensor are properly within the image frame.
+
 helpers.py contains small functions, e.g. for measuring the distance between lines, finding line intersections etc. 
 
 It then has two methods for extracting the edge coordinates. One method relies on finding contours with OpenCV, the other fits a line using a hough transform.
