@@ -64,8 +64,8 @@ def z_fit(x,y):
         print("Error - curve_fit failed")
         correctedPosition = np.mean(x)
         return correctedPosition
-    if popt[1] > 11.95: # no fit results larger 12mm allowed (maximum z height of stage)
-        correctedPosition=11.95
+    if popt[1] > 11.95: # no fit results larger 11.95 - range/2 allowed (maximum z height of stage is 12mm)
+        correctedPosition=11.95-(np.mean(x)-np.min(x))
     else:
         correctedPosition=popt[1] #<<<<<<<<<<<<<
     print("Position: %3.3f Mean: %3.3f Diff: %3.3f " %(GetPositionEx(zPS, nAxis),popt[1] ,popt[1]-GetPositionEx(zPS, nAxis)))
