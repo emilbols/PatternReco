@@ -21,17 +21,17 @@ time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
 print("time stamp of measurement: ", time_measure)
 
 # sharpness threshold for using auto focusing, to be obtained from sharpness check program:
-#sharp_thres = 350000000
-sharp_thres = 150852645
+sharp_thres = 500000000
+
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
-measure_type = "corner"
+measure_type = "edges"
 
 if measure_type == "corner":
     print("Performing corner to corner measurement")
-    video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_corner)
 elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
-    video_feed = VideoFeedHandler('Camera_1', 0, process_edges)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_edges)
 else:
     print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
     exit()
@@ -53,7 +53,7 @@ if test_video_only:
 
     
 xComPort=4
-yComPort=7
+yComPort=6
 zComPort=3
 
 xPS = 1
@@ -74,7 +74,7 @@ dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
 # give location of dll
 mydll = windll.LoadLibrary(dllabspath)
 
-output_dir = 'fm2_module/'
+output_dir = 'dummy_sensor_blackbox_cover_lesslight/'
 
 def setup_stage(dll_ref,PS,ComPort,speed,absolute):
     stage=dll_ref.PS10_Connect(PS, 0, ComPort, 9600,0,0,0,0)
@@ -97,17 +97,19 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 4.440
+#nom_height = 5.6
+nom_height = 7.9
 z_diff = 1.7
 if measure_type == "corner":
-    steps = 4
+    steps = 3
 if measure_type == "edges":
     steps = 5
 
-x_start = 4.0
-y_start = 5.0
+x_start = 0.0
+y_start = 3.0
 
-y_dim = 93.0+y_start
+#y_dim = 93.0+y_start
+y_dim = 96.0+y_start
 x_dim = 101.5+x_start
 
 #### CORNER:
@@ -118,9 +120,11 @@ x_dim = 101.5+x_start
 #  --2----4----6----8-- bottom
 #
 if measure_type == "corner":
-    path = [(x_dim, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]]
-    edges = [ path ]
+    #path = [(x_start, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(y_start,y_dim,steps) for fac in [1,0]]
+    #edges = [ path ]
+    #edges = [ [(x_start, y_start, nom_height),(x_start, y_start, nom_height+z_diff), (x_start, y_dim, nom_height-0.4), (x_start, y_dim, nom_height+z_diff-0.4)] ]
 
+    edges = [ [(x_start, y_start, nom_height),(x_start, y_start, nom_height+z_diff), (x_start, y_dim, nom_height-0.1), (x_start, y_dim, nom_height+z_diff-0.1)] ]    
 #### EDGES:
 #starting point: southeast corner
 #path: SW -> SE -> NE -> NW
@@ -130,12 +134,12 @@ if measure_type == "edges":
     edge2_positions = [(x_dim,round(y,1),nom_height) for y in numpy.linspace(y_start,y_dim,steps)[1:]]
     edge3_positions = [(round(x,1),y_dim,nom_height) for x in numpy.linspace(x_dim,x_start,steps)[1:]]
     edge4_positions = [(x_start,round(y,1),nom_height) for y in numpy.linspace(y_dim,y_start,steps)[1:-1]]
-    edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
-    #edges = [edge4_positions ]
+    #edges = [ edge1_positions, edge2_positions, edge3_positions, edge4_positions ]
+    edges = [ edge4_positions ]
 #out.write(frame)
 #should be read by the stage
                                               
-edge_count = 0
+edge_count = 3
 for edge in edges:
     video_feed.n_edge = edge_count
     cord_count = 0
@@ -146,13 +150,16 @@ for edge in edges:
         # first cord of all following edges: use focused z-value from previous edge (z_focused)
         # all other cords but the first cord: use focused z-value from previous cord (z_focused)
         if cord_count == 0:
-            if edge_count == 0:
+            if edge_count == 3:
                 z_focused = cord[2]
                 z = cord[2]
             else:
                 z = z_focused
         else:
-            z = z_focused
+            if measure_type == "corner":
+                z = cord[2] #corner issue here!
+            else:
+                z = z_focused  
         xstage=mydll.PS10_MoveEx(xPS, nAxis, c_double(x), 1)
         xstate = mydll.PS10_GetMoveState(xPS, nAxis)
         ystage=mydll.PS10_MoveEx(yPS, nAxis, c_double(y), 1)

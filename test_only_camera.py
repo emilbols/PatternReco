@@ -9,7 +9,7 @@ from helpers import rho_theta_to_xy, select_lines,average_over_nearby_lines,dist
 from edge_finder import edge_find, corner_find
 # capture frames from a camera
 #cap = cv2.VideoCapture('videos/edge_scan.mp4')
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH,2560);
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT,2560);

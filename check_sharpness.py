@@ -21,14 +21,14 @@ time_measure = time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime())
 print("time stamp of measurement: ", time_measure)
 
 # measurement type: "corner" (corner top to corner bottom) or "edges" (all edges of top sensor)
-measure_type = "edges"
+measure_type = "corner"
 
 if measure_type == "corner":
     print("Performing corner to corner measurement")
-    video_feed = VideoFeedHandler('Camera_1', 0, process_corner)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_corner)
 elif measure_type == "edges":
     print("Performing measurement of sensor egdes")
-    video_feed = VideoFeedHandler('Camera_1', 0, process_edges)
+    video_feed = VideoFeedHandler('Camera_1', 1, process_edges)
 else:
     print("ERROR: missing argument for measurement type:\n 'edges' for measuring all edges of top sensor\n 'corner': measure distance of bottom and top sensor corners")
     exit()
@@ -95,15 +95,15 @@ GetPositionEx=mydll.PS10_GetPositionEx
 GetPositionEx.restype = ctypes.c_double
 
 
-nom_height = 7.8
-z_diff = 1.8
+nom_height = 5.7
+z_diff = 1.7
 if measure_type == "corner":
     steps = 3
 if measure_type == "edges":
     steps = 3
 
-x_start = 5.0
-y_start = 5.0
+x_start = 0.0
+y_start = 3.5
 
 y_dim = 93.5+y_start
 x_dim = 102.0+x_start
@@ -116,7 +116,7 @@ x_dim = 102.0+x_start
 #
 #[:-2] -> measure corners at begin and middle of edge (4 measurement points in total)
 if measure_type == "corner":
-    path = [(x_dim, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(0,y_dim,steps) for fac in [1,0]][:-2]
+    path = [(x_start, round(y,1),nom_height+fac*z_diff) for y in numpy.linspace(y_start,y_dim,steps) for fac in [1,0]][:-2]
     edges = [ path ]
 
 #### EDGES:
